@@ -144,7 +144,7 @@ footer{color:#8392a5}.footer-brand{color:#1a2b42}
 </head>
 <body>
 <header><div class="wrap nav">
-<a class="brand" href="#">smile<b>store</b></a>
+<a class="brand" href="#"><b>smile</b>store</a>
 <nav class="nav-links"><a href="#catalog">Каталог</a><a href="#about">О нас</a><a href="#contact">Контакты</a></nav>
 <div class="nav-right"><a class="nav-ig" href="https://instagram.com/Smilestore_tj" target="_blank" rel="noopener">@smilestore_tj <svg class="icon-arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17 17 7M7 7h10v10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div>
 </div></header>
@@ -171,7 +171,7 @@ footer{color:#8392a5}.footer-brand{color:#1a2b42}
 <section class="about" id="about"><div class="wrap" style="display:contents"></div><div class="about-image"><img src="https://images.unsplash.com/photo-1606811971618-4486d14f3f99?auto=format&fit=crop&w=1100&q=85" alt="Красивая улыбка"></div><div><div class="eyebrow-small">О SmileStore</div><h2>Твоя улыбка.<br>Твоя уверенность.</h2><p>SmileStore — каталог товаров для ухода за полостью рта. Здесь можно познакомиться с ассортиментом и узнать подробности о понравившихся товарах.</p><p>Мы находимся в Худжанде. По вопросам наличия, стоимости и заказа напиши нам в Instagram.</p><div class="about-line"><span>SMILESTORE TJ</span><span>ХУДЖАНД</span><span>УХОД КАЖДЫЙ ДЕНЬ</span></div></section>
 <section class="contact" id="contact"><div class="wrap contact-row"><div><h2>Есть вопросы?</h2><p>Напиши нам — расскажем об ассортименте и поможем с выбором.</p></div><a class="button" href="https://instagram.com/Smilestore_tj" target="_blank" rel="noopener">Связаться в Instagram <svg class="icon-arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17 17 7M7 7h10v10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div></section>
 </main>
-<footer><div class="wrap footer-row"><div class="footer-brand">smile<b>store</b></div><div>© <span id="year"></span> SmileStore TJ</div><a href="https://instagram.com/Smilestore_tj" target="_blank" rel="noopener">@Smilestore_tj <svg class="icon-arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17 17 7M7 7h10v10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div></footer>
+<footer><div class="wrap footer-row"><div class="footer-brand"><b>smile</b>store</div><div>© <span id="year"></span> SmileStore TJ</div><a href="https://instagram.com/Smilestore_tj" target="_blank" rel="noopener">@Smilestore_tj <svg class="icon-arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17 17 7M7 7h10v10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div></footer>
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-box"><button class="close" id="close" aria-label="Закрыть"><svg class="icon-close" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button><img id="modalImg" src="" alt=""><div class="modal-info"><div class="eyebrow-small" id="modalCategory"></div><h3 id="modalTitle"></h3><p id="modalDesc"></p><p>Цена указана в сомони.</p><a class="button" href="https://instagram.com/Smilestore_tj" target="_blank" rel="noopener">Написать в Instagram <svg class="icon-arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17 17 7M7 7h10v10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div></div></div>
 <script>
 const fallbackImage='https://images.unsplash.com/photo-1609840114035-3c981b782dfe?auto=format&fit=crop&w=900&q=85';
@@ -184,6 +184,43 @@ filters.forEach(b=>b.addEventListener('click',()=>{filters.forEach(x=>x.classLis
 const modal=document.getElementById('modal');cards.forEach(c=>c.addEventListener('click',()=>{document.getElementById('modalImg').src=c.querySelector('img').src;document.getElementById('modalImg').alt=c.querySelector('img').alt;document.getElementById('modalCategory').textContent=c.querySelector('.product-category').textContent;document.getElementById('modalTitle').textContent=c.querySelector('h3').textContent;document.getElementById('modalDesc').textContent=c.querySelector('.product-desc').textContent;modal.classList.add('open');document.body.style.overflow='hidden'}));
 function closeModal(){modal.classList.remove('open');document.body.style.overflow=''}document.getElementById('close').addEventListener('click',closeModal);modal.addEventListener('click',e=>{if(e.target===modal)closeModal()});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});document.getElementById('year').textContent=new Date().getFullYear();
 </script>
+
+<style id="smilestore-midnight-theme">
+:root{--ink:#edf4ff;--navy:#071a33;--blue:#75b7ff;--muted:#a7bad2;--line:rgba(148,183,224,.17);--paper:#102b4b;--soft:#0a203b}
+html{background:#07172d}
+body{color:#edf4ff;background:radial-gradient(ellipse at 12% 0%,rgba(35,101,171,.28),transparent 38%),radial-gradient(ellipse at 90% 30%,rgba(26,76,133,.24),transparent 36%),linear-gradient(155deg,#06162b 0%,#0a2341 52%,#071a32 100%)!important;background-attachment:fixed!important}
+header{background:rgba(5,20,39,.76)!important;border-bottom:1px solid rgba(163,197,235,.14)!important;box-shadow:0 8px 30px rgba(0,0,0,.18)!important}
+.brand,.footer-brand{color:#f3f8ff!important}.brand b,.footer-brand b{color:#7dbbff!important}
+.nav-links,.quiet-link{color:#b3c5dc!important}.nav-links a:hover,.nav-ig{color:#8dc5ff!important}
+.eyebrow,.eyebrow-small,.category-num,.product-category{color:#80bfff!important}.hero h1 span{color:#80bfff!important}
+.hero p,.intro-copy,.category p,.catalog-note,.product-desc,.about p,.contact p{color:#a9bbd1!important}
+.intro{border-color:rgba(163,197,235,.15)!important}
+.category-strip{border:0!important}
+.category,.product{background:linear-gradient(145deg,rgba(20,51,83,.96),rgba(11,35,62,.98))!important;border:1px solid rgba(143,183,229,.18)!important;box-shadow:0 14px 35px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.035)!important;color:#edf4ff!important}
+.category:hover,.product:hover{background:linear-gradient(145deg,rgba(25,63,101,.98),rgba(13,42,73,.99))!important;border-color:rgba(130,190,250,.35)!important;box-shadow:0 18px 42px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.06)!important}
+.category h3,.product h3,.intro h2,.catalog h2,.about h2{color:#f1f7ff!important}
+.catalog{background:rgba(3,16,32,.36)!important;border-top:1px solid rgba(156,190,229,.13)!important;border-bottom:1px solid rgba(156,190,229,.13)!important}
+.filters,.search{background:rgba(17,45,75,.86)!important;border:1px solid rgba(145,184,226,.2)!important;color:#eaf3ff!important;box-shadow:0 8px 26px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.035)!important}
+.filter{color:#b6c8df!important}.filter.active,.filter:hover{color:#fff!important}
+.filter-glider{background:linear-gradient(135deg,#347fca,#1c5c9c)!important;border:1px solid rgba(174,215,255,.28)!important;box-shadow:0 4px 15px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.25)!important}
+.search::placeholder{color:#91a8c3!important}.search:focus{border-color:#6aabed!important;box-shadow:0 0 0 4px rgba(77,153,228,.13)!important}
+.product-image{position:relative!important;background:#102c4c!important;isolation:isolate}.product-image img{position:relative;z-index:0}
+.product-image:after{content:"";position:absolute;z-index:1;pointer-events:none;left:0;right:0;bottom:-1px;height:46%;background:linear-gradient(180deg,rgba(16,43,75,0) 0%,rgba(16,43,75,.58) 50%,#102b4b 100%)}
+.product-body{position:relative;z-index:2;margin-top:-17px!important;padding-top:22px!important;background:#102b4b!important;border-radius:0 0 17px 17px}
+.product-tag{background:rgba(7,25,46,.76)!important;color:#e4f1ff!important;border:1px solid rgba(181,215,249,.22)!important}
+.product-bottom{border-color:rgba(159,191,226,.17)!important}.price{color:#e8f3ff!important}.arrow{color:#8fc8ff!important}
+.button{background:linear-gradient(135deg,#378bd8,#1b5e9f)!important;color:white!important;border:1px solid rgba(173,216,255,.28)!important;box-shadow:0 9px 24px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.22)!important}
+.button:hover{background:linear-gradient(135deg,#4a9ce8,#246eaf)!important}
+.hero-image,.about-image{background:rgba(19,49,81,.9)!important;border-color:rgba(155,194,235,.2)!important;box-shadow:0 22px 55px rgba(0,0,0,.26),inset 0 1px 0 rgba(255,255,255,.06)!important}
+.image-caption{background:rgba(7,25,46,.76)!important;color:#e5f2ff!important;border:1px solid rgba(176,211,245,.2)!important}
+.contact{background:transparent!important}.contact .wrap{background:linear-gradient(125deg,#102f52,#164b78)!important;border:1px solid rgba(153,198,240,.22)!important;box-shadow:0 24px 60px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.08)!important}
+.contact .button{background:#e8f3ff!important;color:#0a2a4a!important}
+footer{color:#8fa6c1!important;border-color:rgba(156,190,229,.14)!important}footer a{color:#b8d5f3!important}
+.modal{background:rgba(0,8,19,.76)!important}.modal-box{background:#102b4b!important;color:#edf4ff!important;border:1px solid rgba(154,194,237,.22)!important;box-shadow:0 30px 90px rgba(0,0,0,.5)!important}
+.modal-info h3{color:#f2f7ff!important}.modal-info p{color:#aec1d9!important}.close{background:#183c60!important;color:#eaf4ff!important;border:1px solid rgba(160,199,239,.24)!important}
+.empty{color:#afc2da!important}.image-unavailable{background:linear-gradient(145deg,#183b60,#0e2745)!important}.image-unavailable:after{color:#a7c9ec!important}
+@media(max-width:700px){.product-body{margin-top:-15px!important;padding-top:20px!important}}
+</style>
 </body></html>
 <style>
 /* SmileStore identity: modern dental-tech retail, deliberately distinct from LEPI */
