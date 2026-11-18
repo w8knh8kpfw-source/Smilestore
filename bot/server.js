@@ -17,7 +17,7 @@ const admins = new Set();
 const products = new Map();
 const statusLabels = { available:'В наличии', preorder:'Предзаказ', unavailable:'Нет в наличии' };
 
-const serverHttp = http.createServer((req,res)=>{res.writeHead(200,{'content-type':'text/plain'});res.end('SmileStore bot is running');});
+const serverHttp = http.createServer(async (req,res)=>{\n if(req.method==='OPTIONS'){res.writeHead(204,{'access-control-allow-origin':'*','access-control-allow-methods':'GET,OPTIONS','access-control-allow-headers':'content-type'});res.end();return;}\n if(req.url==='/products' && req.method==='GET'){try{const data=await getProducts();res.writeHead(200,{'content-type':'application/json','access-control-allow-origin':'*','cache-control':'no-store'});res.end(JSON.stringify(data));}catch(e){res.writeHead(500,{'access-control-allow-origin':'*'});res.end('[]');}return;}\n res.writeHead(200,{'content-type':'text/plain'});res.end('SmileStore bot is running');});
 serverHttp.listen(process.env.PORT || 10000, '0.0.0.0', ()=>console.log('SmileStore bot listening'));
 
 async function tg(method, body) {
