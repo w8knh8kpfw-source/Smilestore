@@ -3,7 +3,7 @@ import http from 'node:http';
 
 const TG_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const ADMIN_CODE = process.env.ADMIN_CODE;
-const SUPABASE_URL = process.env.SUPABASE_URL?.replace(/\\/$/, '');
+const SUPABASE_URL = process.env.SUPABASE_URL?.replace(/\/+$/, '');
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!TG_TOKEN || !ADMIN_CODE || !SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
   console.error('Missing required environment variables. Check Render Environment.');
@@ -56,7 +56,7 @@ async function uploadImage(fileId){
  const file=await fetch(`https://api.telegram.org/file/bot${TG_TOKEN}/${meta.result.file_path}`);
  const bytes=Buffer.from(await file.arrayBuffer());
  const ext=(meta.result.file_path.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'');
- const path=`products/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext`;
+ const path=`products/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
  const up=await fetch(`${SUPABASE_URL}/storage/v1/object/smilestore-images/${path}`,{method:'POST',headers:{...headers,'content-type':file.headers.get('content-type')||'image/jpeg','x-upsert':'true'},body:bytes});
  if(!up.ok) throw new Error('Storage upload '+up.status+' '+await up.text());
  return `${SUPABASE_URL}/storage/v1/object/public/smilestore-images/${path}`;
@@ -108,7 +108,7 @@ async function callback(q){
  if(data.startsWith('pick:')){
   const [,mode,id]=data.split(':');const list=await getProducts();const p=list.find(x=>String(x.id)===id);if(!p)return;
   const s=session(chat);s.product=p;
-  await send(chat,`<b>${p.name}</b>\nЦена: ${p.price} сомони\nНаличие: ${statusLabels[p.status]||p.status}\nЧто изменить?`,inline({[{text:'Изменить фото',callback_data:'field:image'},{text:'Изменить название',callback_data:'field:name'}],[{text:'Изменить описание',callback_data:'field:description'},{text:'Изменить цену',callback_data:'field:price'}],[{text:'🗑 Удалить товар',callback_data:`delete:${p.id}`}],[{text:'Назад',callback_data:'back'}]}));
+  await send(chat,`<b>${p.name}</b>\nЦена: ${p.price} сомони\nНаличие: ${statusLabels[p.status]||p.status}\nЧто изменить?`,inline([[{text:'Изменить фото',callback_data:'field:image'},{text:'Изменить название',callback_data:'field:name'}],[{text:'Изменить описание',callback_data:'field:description'},{text:'Изменить цену',callback_data:'field:price'}],[{text:'🗑 Удалить товар',callback_data:`delete:${p.id}`}],[{text:'Назад',callback_data:'back'}]]));
   return;
  }
  if(data==='back'){await send(chat,'Главное меню',mainMenu);return;}
