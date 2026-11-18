@@ -17,7 +17,27 @@ const admins = new Set();\nconst failedCodes = new Map();
 const products = new Map();
 const statusLabels = { available:'В наличии', preorder:'Предзаказ', unavailable:'Нет в наличии' };
 
-const serverHttp = http.createServer(async (req,res)=>{\n if(req.method==='OPTIONS'){res.writeHead(204,{'access-control-allow-origin':'*','access-control-allow-methods':'GET,OPTIONS','access-control-allow-headers':'content-type'});res.end();return;}\n if(req.url==='/products' && req.method==='GET'){try{const data=await getProducts();res.writeHead(200,{'content-type':'application/json','access-control-allow-origin':'*','cache-control':'no-store'});res.end(JSON.stringify(data));}catch(e){res.writeHead(500,{'access-control-allow-origin':'*'});res.end('[]');}return;}\n res.writeHead(200,{'content-type':'text/plain'});res.end('SmileStore bot is running');});
+const serverHttp = http.createServer(async (req, res) => {
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204, {'access-control-allow-origin':'*','access-control-allow-methods':'GET,OPTIONS','access-control-allow-headers':'content-type'});
+    res.end();
+    return;
+  }
+  if (req.url === '/products' && req.method === 'GET') {
+    try {
+      const data = await getProducts();
+      res.writeHead(200, {'content-type':'application/json','access-control-allow-origin':'*','cache-control':'no-store'});
+      res.end(JSON.stringify(data));
+    } catch (e) {
+      console.error('Products endpoint error:', e);
+      res.writeHead(500, {'access-control-allow-origin':'*'});
+      res.end('[]');
+    }
+    return;
+  }
+  res.writeHead(200, {'content-type':'text/plain'});
+  res.end('SmileStore bot is running');
+});
 serverHttp.listen(process.env.PORT || 10000, '0.0.0.0', ()=>console.log('SmileStore bot listening'));
 
 async function tg(method, body) {
@@ -96,11 +116,11 @@ async function handleMessage(m){
  if(s.action==='add_name' && txt){s.name=txt.trim();s.action='add_desc';await send(chat,'Напишите описание товара.');return;}
  if(s.action==='add_desc' && txt){s.description=txt.trim();s.action='add_price';await send(chat,'Укажите цену только цифрами (например: 189).');return;}
  if(s.action==='add_price' && txt){
-   const price=txt.trim();if(!/^\\d+(?:[.,]\\d{1,2})?$/.test(price)){await send(chat,'Цена должна содержать только цифры (можно дробную часть через точку).');return;}
+   const price=txt.trim();if(!/^\d+(?:[.,]\d{1,2})?$/.test(price)){await send(chat,'Цена должна содержать только цифры (можно дробную часть через точку).');return;}
    try{const image_url=await uploadImage(s.photoId);await upsertProduct({name:s.name,description:s.description,price:Number(price.replace(',','.')),image_url,status:'available'});reset(chat);await send(chat,'✅ Товар успешно добавлен на сайт SmileStore!',mainMenu);}
    catch(e){console.error(e);await send(chat,'Не удалось сохранить товар. Проверьте настройки Render/Supabase.');}return;
  }
- if(s.action==='edit_field' && txt){const p=s.product;try{let patch={};if(s.field==='name')patch.name=txt.trim();else if(s.field==='description')patch.description=txt.trim();else if(s.field==='price'){if(!/^\\d+(?:[.,]\\d{1,2})?$/.test(txt.trim())){await send(chat,'Введите цену цифрами.');return;}patch.price=Number(txt.replace(',','.'));}else if(s.field==='image'){if(!m.photo){await send(chat,'Отправьте фотографию, пожалуйста.');return;}patch.image_url=await uploadImage(m.photo[m.photo.length-1].file_id);}await patchProduct(p.id,patch);reset(chat);await send(chat,'Изменения сохранены.',mainMenu);}catch(e){console.error(e);await send(chat,'Ошибка сохранения изменения.');}return;}
+ if(s.action==='edit_field' && (txt || (s.field==='image' && m.photo))){const p=s.product;try{let patch={};if(s.field==='name')patch.name=txt.trim();else if(s.field==='description')patch.description=txt.trim();else if(s.field==='price'){if(!/^\d+(?:[.,]\d{1,2})?$/.test(txt.trim())){await send(chat,'Введите цену цифрами.');return;}patch.price=Number(txt.replace(',','.'));}else if(s.field==='image'){if(!m.photo){await send(chat,'Отправьте фотографию, пожалуйста.');return;}patch.image_url=await uploadImage(m.photo[m.photo.length-1].file_id);}await patchProduct(p.id,patch);reset(chat);await send(chat,'Изменения сохранены.',mainMenu);}catch(e){console.error(e);await send(chat,'Ошибка сохранения изменения.');}return;}
 }
 async function callback(q){
  const chat=q.message.chat.id,data=q.data;await tg('answerCallbackQuery',{callback_query_id:q.id});
