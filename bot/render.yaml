@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: smilestore-telegram-admin
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
