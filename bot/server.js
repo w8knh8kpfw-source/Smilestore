@@ -13,7 +13,7 @@ const API = `https://api.telegram.org/bot${TG_TOKEN}`;
 const headers = { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` };
 let offset = 0;
 const sessions = new Map();
-const admins = new Set();
+const admins = new Set();\nconst failedCodes = new Map();
 const products = new Map();
 const statusLabels = { available:'В наличии', preorder:'Предзаказ', unavailable:'Нет в наличии' };
 
