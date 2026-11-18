@@ -156,7 +156,7 @@ footer{color:#8392a5}.footer-brand{color:#1a2b42}
 <section class="intro"><div class="wrap"><div class="intro-row"><div><div class="eyebrow-small">Твой уход — твои правила</div><h2>Меньше лишнего.<br>Больше внимания себе.</h2></div><p class="intro-copy">Собери свою ежедневную рутину из простых и нужных вещей. В каталоге собраны примеры категорий SmileStore.</p></div>
 <div class="category-strip"><div class="category"><div class="category-num"><svg class="category-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M7 9.5c0-2 1.6-3.5 3.6-3.5 2.2 0 3.1 1.4 5.4 1.4S19.2 6 21.4 6C23.4 6 25 7.5 25 9.5c0 3.2-2.2 5.1-3.1 8.1-.9 3-1.2 8.4-3.5 8.4-1.3 0-1.5-3.6-2.4-3.6s-1.1 3.6-2.4 3.6c-2.3 0-2.6-5.4-3.5-8.4C9.2 14.6 7 12.7 7 9.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M11 12h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>01 / ОСНОВА</span></div><h3>Чистота каждый день</h3><p>Зубные щётки и пасты для привычного ежедневного ухода.</p></div><div class="category"><div class="category-num"><svg class="category-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M7 8.5h18M9 8.5l1.5 17h11L23 8.5M13 8.5V6h6v2.5M13 13v8M19 13v8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span>02 / ДОПОЛНЕНИЕ</span></div><h3>Забота в деталях</h3><p>Нить, ополаскиватели и аксессуары для дополнительного ухода.</p></div><div class="category"><div class="category-num"><svg class="category-icon" viewBox="0 0 32 32" aria-hidden="true"><circle cx="14" cy="14" r="7.5" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="m20 20 6 6M11 14h6M14 11v6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><span>03 / ТВОЙ ВЫБОР</span></div><h3>Подбор под себя</h3><p>Выбирай товары и собирай удобную рутину ухода.</p></div></div></div></section>
 <section class="catalog" id="catalog"><div class="wrap"><div class="catalog-head"><div><div class="eyebrow-small">Подборка SmileStore</div><h2>Каталог товаров</h2></div><p class="catalog-note">Подборка товаров для ежедневного ухода. Цены указаны в сомони.</p></div>
-<div class="catalog-controls"><div class="filters"><span class="filter-glider" aria-hidden="true"></span><button class="filter active" data-filter="all">Все товары</button><button class="filter" data-filter="brush">Щётки</button><button class="filter" data-filter="paste">Пасты</button><button class="filter" data-filter="care">Дополнительный уход</button></div><input class="search" id="search" type="search" placeholder="Поиск по каталогу" aria-label="Поиск товаров"></div>
+<div class="catalog-controls"><div class="filters"><span class="filter-glider" aria-hidden="true"></span><button class="filter active" data-filter="all">Все товары</button><button class="filter" data-filter="brush">Щётки</button><button class="filter" data-filter="paste">Пасты</button><button class="filter" data-filter="floss">Зубная нить</button><button class="filter" data-filter="mouthwash">Ополаскиватели</button><button class="filter" data-filter="irrigator">Ирригаторы</button><button class="filter" data-filter="care">Дополнительный уход</button></div><input class="search" id="search" type="search" placeholder="Поиск по каталогу" aria-label="Поиск товаров"></div>
 <div class="products">
 <article class="product" data-category="brush" data-name="Электрическая зубная щётка"><div class="product-image"><img src="https://images.unsplash.com/photo-1559591937-abc1e6c7f1c7?auto=format&fit=crop&w=800&q=85" alt="Электрическая зубная щётка"><span class="product-tag">Хит ухода</span></div><div class="product-body"><div class="product-category">Щётки</div><h3>Электрическая зубная щётка</h3><div class="product-desc">Для тщательного ежедневного ухода.</div><div class="product-bottom"><span class="price">189 сомони</span><span class="arrow"><svg class="icon-arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17 17 7M7 7h10v10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div></div></article>
 <article class="product" data-category="brush" data-name="Мягкая зубная щётка"><div class="product-image"><img src="https://images.unsplash.com/photo-1609840114035-3c981b782dfe?auto=format&fit=crop&w=800&q=85" alt="Зубная щётка"><span class="product-tag">На каждый день</span></div><div class="product-body"><div class="product-category">Щётки</div><h3>Мягкая зубная щётка</h3><div class="product-desc">Бережный вариант для ежедневной чистки.</div><div class="product-bottom"><span class="price">29 сомони</span><span class="arrow"><svg class="icon-arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17 17 7M7 7h10v10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div></div></article>
@@ -186,7 +186,7 @@ function closeModal(){modal.classList.remove('open');document.body.style.overflo
 
 // Bot-managed products from SmileStore admin
 (async()=>{
- const endpoint='https://smilestore-telegram-admin.onrender.com/products';
+ const endpoint='https://smilestorewebservice.onrender.com/products';
  try{
   const resp=await fetch(endpoint,{cache:'no-store'});if(!resp.ok)return;
   const items=await resp.json();if(!Array.isArray(items)||!items.length)return;
@@ -194,13 +194,14 @@ function closeModal(){modal.classList.remove('open');document.body.style.overflo
   const statusNames={available:'В наличии',preorder:'Предзаказ',unavailable:'Нет в наличии'};
   const statusClass={available:'',preorder:'',unavailable:''};
   items.forEach(p=>{
-   const article=document.createElement('article');article.className='product';article.dataset.category='care';article.dataset.name=p.name||'';
+   const article=document.createElement('article');article.className='product';article.dataset.category=p.category||'care';article.dataset.name=p.name||'';
    const imgWrap=document.createElement('div');imgWrap.className='product-image';
    const img=document.createElement('img');img.src=p.image_url;img.alt=p.name||'Товар';img.loading='lazy';
    const tag=document.createElement('span');tag.className='product-tag';tag.textContent=statusNames[p.status]||'Товар';
    imgWrap.append(img,tag);
    const body=document.createElement('div');body.className='product-body';
-   const cat=document.createElement('div');cat.className='product-category';cat.textContent='SmileStore';
+   const categoryNames={brush:'Щётки',paste:'Пасты',floss:'Зубная нить',mouthwash:'Ополаскиватели',irrigator:'Ирригаторы',care:'Дополнительный уход'};
+   const cat=document.createElement('div');cat.className='product-category';cat.textContent=categoryNames[p.category]||'Дополнительный уход';
    const title=document.createElement('h3');title.textContent=p.name||'Товар';
    const desc=document.createElement('div');desc.className='product-desc';desc.textContent=p.description||'';
    const bottom=document.createElement('div');bottom.className='product-bottom';
@@ -209,7 +210,7 @@ function closeModal(){modal.classList.remove('open');document.body.style.overflo
    bottom.append(price,arrow);body.append(cat,title,desc,bottom);article.append(imgWrap,body);grid.appendChild(article);
    article.addEventListener('click',()=>{
     document.getElementById('modalImg').src=img.src;document.getElementById('modalImg').alt=img.alt;
-    document.getElementById('modalCategory').textContent=statusNames[p.status]||'SmileStore';
+    document.getElementById('modalCategory').textContent=categoryNames[p.category]||'Дополнительный уход';
     document.getElementById('modalTitle').textContent=title.textContent;
     document.getElementById('modalDesc').textContent=desc.textContent;
     const modal=document.getElementById('modal');modal.classList.add('open');document.body.style.overflow='hidden';
