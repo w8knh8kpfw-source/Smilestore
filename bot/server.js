@@ -17,6 +17,8 @@ const admins = new Set();
 const failedCodes = new Map();
 const products = new Map();
 const statusLabels = { available:'В наличии', preorder:'Предзаказ', unavailable:'Нет в наличии' };
+const categoryLabels = { brush:'Щётки', paste:'Пасты', floss:'Зубная нить', mouthwash:'Ополаскиватели', irrigator:'Ирригаторы', care:'Дополнительный уход' };
+const categoryKeyboard = { inline_keyboard: [[{text:'🪥 Щётки',callback_data:'category:brush'},{text:'🧴 Пасты',callback_data:'category:paste'}],[{text:'Зубная нить',callback_data:'category:floss'},{text:'Ополаскиватели',callback_data:'category:mouthwash'}],[{text:'Ирригаторы',callback_data:'category:irrigator'},{text:'Дополнительный уход',callback_data:'category:care'}]] };
 
 const serverHttp = http.createServer(async (req, res) => {
   if (req.method === 'OPTIONS') {
@@ -112,13 +114,13 @@ async function handleMessage(m){
  if(txt==='✏️ Редактировать товары'){await editList(chat,'edit');return;}
  if(txt==='📦 Наличие товаров'){await statusList(chat);return;}
  if(s.action==='add_photo' && m.photo){
-   const photo=m.photo[m.photo.length-1];s.photoId=photo.file_id;s.action='add_name';await send(chat,'Фото получено. Теперь отправьте название товара.');return;
+   const photo=m.photo[m.photo.length-1];s.photoId=photo.file_id;s.action='add_category';await send(chat,'Фото получено. Выберите категорию товара:',categoryKeyboard);return;
  }
  if(s.action==='add_name' && txt){s.name=txt.trim();s.action='add_desc';await send(chat,'Напишите описание товара.');return;}
  if(s.action==='add_desc' && txt){s.description=txt.trim();s.action='add_price';await send(chat,'Укажите цену только цифрами (например: 189).');return;}
  if(s.action==='add_price' && txt){
    const price=txt.trim();if(!/^\d+(?:[.,]\d{1,2})?$/.test(price)){await send(chat,'Цена должна содержать только цифры (можно дробную часть через точку).');return;}
-   try{const image_url=await uploadImage(s.photoId);await upsertProduct({name:s.name,description:s.description,price:Number(price.replace(',','.')),image_url,status:'available'});reset(chat);await send(chat,'✅ Товар успешно добавлен на сайт SmileStore!',mainMenu);}
+   try{const image_url=await uploadImage(s.photoId);await upsertProduct({name:s.name,description:s.description,category:s.category,price:Number(price.replace(',','.')),image_url,status:'available'});reset(chat);await send(chat,'✅ Товар успешно добавлен на сайт SmileStore!',mainMenu);}
    catch(e){console.error(e);await send(chat,'Не удалось сохранить товар. Проверьте настройки Render/Supabase.');}return;
  }
  if(s.action==='edit_field' && (txt || (s.field==='image' && m.photo))){const p=s.product;try{let patch={};if(s.field==='name')patch.name=txt.trim();else if(s.field==='description')patch.description=txt.trim();else if(s.field==='price'){if(!/^\d+(?:[.,]\d{1,2})?$/.test(txt.trim())){await send(chat,'Введите цену цифрами.');return;}patch.price=Number(txt.replace(',','.'));}else if(s.field==='image'){if(!m.photo){await send(chat,'Отправьте фотографию, пожалуйста.');return;}patch.image_url=await uploadImage(m.photo[m.photo.length-1].file_id);}await patchProduct(p.id,patch);reset(chat);await send(chat,'Изменения сохранены.',mainMenu);}catch(e){console.error(e);await send(chat,'Ошибка сохранения изменения.');}return;}
@@ -132,7 +134,8 @@ async function callback(q){
   await send(chat,`<b>${p.name}</b>\nЦена: ${p.price} сомони\nНаличие: ${statusLabels[p.status]||p.status}\nЧто изменить?`,inline([[{text:'Изменить фото',callback_data:'field:image'},{text:'Изменить название',callback_data:'field:name'}],[{text:'Изменить описание',callback_data:'field:description'},{text:'Изменить цену',callback_data:'field:price'}],[{text:'🗑 Удалить товар',callback_data:`delete:${p.id}`}],[{text:'Назад',callback_data:'back'}]]));
   return;
  }
- if(data==='back'){await send(chat,'Главное меню',mainMenu);return;}
+ if(data==='back'){reset(chat);await send(chat,'Главное меню',mainMenu);return;}
+ if(data.startsWith('category:')){const s=session(chat);const category=data.split(':')[1];if(!categoryLabels[category]||s.action!=='add_category')return;s.category=category;s.action='add_name';await send(chat,`Категория: <b>${categoryLabels[category]}</b>. Теперь отправьте название товара.`);return;}
  if(data.startsWith('field:')){const s=session(chat);s.field=data.split(':')[1];s.action='edit_field';await send(chat,s.field==='image'?'Отправьте новое фото товара.':s.field==='name'?'Введите новое название.':s.field==='description'?'Введите новое описание.':'Введите новую цену (цифрами).');return;}
  if(data.startsWith('delete:')){const id=data.split(':')[1];try{await deleteProduct(id);reset(chat);await send(chat,'Товар удалён.',mainMenu);}catch(e){console.error(e);await send(chat,'Не удалось удалить товар.');}return;}
  if(data.startsWith('stock:')){const id=data.split(':')[1];const list=await getProducts();const p=list.find(x=>String(x.id)===id);if(!p)return;await send(chat,`Выберите наличие для <b>${p.name}</b>:`,inline([[{text:'В наличии',callback_data:`setstock:${id}:available`}],[{text:'Предзаказ',callback_data:`setstock:${id}:preorder`}],[{text:'Нет в наличии',callback_data:`setstock:${id}:unavailable`}]]));return;}
