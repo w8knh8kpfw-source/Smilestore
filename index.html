@@ -183,6 +183,45 @@ function apply(){const q=search.value.trim().toLowerCase();let n=0;cards.forEach
 filters.forEach(b=>b.addEventListener('click',()=>{filters.forEach(x=>x.classList.remove('active'));b.classList.add('active');active=b.dataset.filter;moveGlider();apply()}));search.addEventListener('input',apply);window.addEventListener('resize',moveGlider);requestAnimationFrame(moveGlider);
 const modal=document.getElementById('modal');cards.forEach(c=>c.addEventListener('click',()=>{document.getElementById('modalImg').src=c.querySelector('img').src;document.getElementById('modalImg').alt=c.querySelector('img').alt;document.getElementById('modalCategory').textContent=c.querySelector('.product-category').textContent;document.getElementById('modalTitle').textContent=c.querySelector('h3').textContent;document.getElementById('modalDesc').textContent=c.querySelector('.product-desc').textContent;modal.classList.add('open');document.body.style.overflow='hidden'}));
 function closeModal(){modal.classList.remove('open');document.body.style.overflow=''}document.getElementById('close').addEventListener('click',closeModal);modal.addEventListener('click',e=>{if(e.target===modal)closeModal()});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});document.getElementById('year').textContent=new Date().getFullYear();
+
+// Bot-managed products from SmileStore admin
+(async()=>{
+ const endpoint='https://smilestore-telegram-admin.onrender.com/products';
+ try{
+  const resp=await fetch(endpoint,{cache:'no-store'});if(!resp.ok)return;
+  const items=await resp.json();if(!Array.isArray(items)||!items.length)return;
+  const grid=document.querySelector('.products');if(!grid)return;
+  const statusNames={available:'В наличии',preorder:'Предзаказ',unavailable:'Нет в наличии'};
+  const statusClass={available:'',preorder:'',unavailable:''};
+  items.forEach(p=>{
+   const article=document.createElement('article');article.className='product';article.dataset.category='care';article.dataset.name=p.name||'';
+   const imgWrap=document.createElement('div');imgWrap.className='product-image';
+   const img=document.createElement('img');img.src=p.image_url;img.alt=p.name||'Товар';img.loading='lazy';
+   const tag=document.createElement('span');tag.className='product-tag';tag.textContent=statusNames[p.status]||'Товар';
+   imgWrap.append(img,tag);
+   const body=document.createElement('div');body.className='product-body';
+   const cat=document.createElement('div');cat.className='product-category';cat.textContent='SmileStore';
+   const title=document.createElement('h3');title.textContent=p.name||'Товар';
+   const desc=document.createElement('div');desc.className='product-desc';desc.textContent=p.description||'';
+   const bottom=document.createElement('div');bottom.className='product-bottom';
+   const price=document.createElement('span');price.className='price';price.textContent=(p.price||0)+' сомони';
+   const arrow=document.createElement('span');arrow.className='arrow';arrow.textContent='↗';
+   bottom.append(price,arrow);body.append(cat,title,desc,bottom);article.append(imgWrap,body);grid.appendChild(article);
+   article.addEventListener('click',()=>{
+    document.getElementById('modalImg').src=img.src;document.getElementById('modalImg').alt=img.alt;
+    document.getElementById('modalCategory').textContent=statusNames[p.status]||'SmileStore';
+    document.getElementById('modalTitle').textContent=title.textContent;
+    document.getElementById('modalDesc').textContent=desc.textContent;
+    const modal=document.getElementById('modal');modal.classList.add('open');document.body.style.overflow='hidden';
+   });
+  });
+  const allCards=[...document.querySelectorAll('.product')];
+  const filters=[...document.querySelectorAll('.filter')],search=document.getElementById('search');let selected='all';
+  function refresh(){const query=(search?.value||'').trim().toLowerCase();let count=0;allCards.forEach(card=>{const shown=(selected==='all'||card.dataset.category===selected)&&card.dataset.name.toLowerCase().includes(query);card.style.display=shown?'':'none';if(shown)count++;});const empty=document.getElementById('empty');if(empty)empty.style.display=count?'none':'block';}
+  filters.forEach(btn=>btn.addEventListener('click',()=>{filters.forEach(x=>x.classList.remove('active'));btn.classList.add('active');selected=btn.dataset.filter;refresh();}));
+  search?.addEventListener('input',refresh);
+ }catch(e){console.warn('SmileStore product sync:',e);}
+})();
 </script>
 
 <style id="smilestore-midnight-theme">
