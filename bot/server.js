@@ -108,7 +108,7 @@ async function handleMessage(m){
    else {attempt.count++;if(attempt.count>=5){attempt.count=0;attempt.blockedUntil=now+10*60*1000;}failedCodes.set(String(chat),attempt);await send(chat,attempt.blockedUntil>now?'⛔ 5 неверных попыток. Вход временно заблокирован на 10 минут.':'⛔ Код не подходит.');}
    return;
  }
- if(txt==='➕ Добавить товар'){reset(chat);s.action='add_photo';await send(chat,'Отправьте фотографию товара.');return;}
+ if(txt==='➕ Добавить товар'){reset(chat);const fresh=session(chat);fresh.action='add_photo';await send(chat,'Отправьте фотографию товара.');return;}
  if(txt==='✏️ Редактировать товары'){await editList(chat,'edit');return;}
  if(txt==='📦 Наличие товаров'){await statusList(chat);return;}
  if(s.action==='add_photo' && m.photo){
