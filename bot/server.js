@@ -81,8 +81,10 @@ async function handleMessage(m){
    return;
  }
  if(!admin(chat)){
-   if(txt.trim()===ADMIN_CODE){admins.add(String(chat));reset(chat);await send(chat,'✅ Код верный. Доступ к админ-панели открыт.',mainMenu);}
-   else await send(chat,'⛔ Код не подходит. Попробуйте ещё раз.');
+   const now=Date.now(), attempt=failedCodes.get(String(chat))||{count:0,blockedUntil:0};
+   if(attempt.blockedUntil>now){await send(chat,'⏳ Слишком много попыток. Попробуйте позже.');return;}
+   if(txt.trim()===ADMIN_CODE){admins.add(String(chat));failedCodes.delete(String(chat));reset(chat);await send(chat,'✅ Код верный. Доступ к админ-панели открыт.',mainMenu);}
+   else {attempt.count++;if(attempt.count>=5){attempt.count=0;attempt.blockedUntil=now+10*60*1000;}failedCodes.set(String(chat),attempt);await send(chat,attempt.blockedUntil>now?'⛔ 5 неверных попыток. Вход временно заблокирован на 10 минут.':'⛔ Код не подходит.');}
    return;
  }
  if(txt==='➕ Добавить товар'){reset(chat);s.action='add_photo';await send(chat,'Отправьте фотографию товара.');return;}
