@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import http from 'node:http';
 import { readFileSync } from 'node:fs';
-import { createHmac, timingSafeEqual } from 'node:crypto';
+import { createHmac, timingSafeEqual, randomBytes } from 'node:crypto';
 
 const TG_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const ADMIN_CODE = process.env.ADMIN_CODE;
@@ -18,6 +18,7 @@ let offset = 0;
 const sessions = new Map();
 const admins = new Set();
 const failedCodes = new Map();
+const webAppTokens = new Map();
 const products = new Map();
 const statusLabels = { available:'В наличии', preorder:'Предзаказ', unavailable:'Нет в наличии' };
 const categoryLabels = { brush:'Щётки', paste:'Пасты', floss:'Зубная нить', mouthwash:'Ополаскиватели', irrigator:'Ирригаторы', care:'Дополнительный уход' };
@@ -25,14 +26,18 @@ const categoryKeyboard = { inline_keyboard: [[{text:'🪥 Щётки',callback_d
 
 const serverHttp = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
-  const sendJson = (code, data) => { res.writeHead(code, {'content-type':'application/json; charset=utf-8','cache-control':'no-store'}); res.end(JSON.stringify(data)); };
-  if (req.method === 'OPTIONS') { res.writeHead(204, {'access-control-allow-methods':'GET,POST,PATCH,DELETE,OPTIONS','access-control-allow-headers':'content-type,x-telegram-init-data'}); res.end(); return; }
+  const sendJson = (code, data) => { const h={'content-type':'application/json; charset=utf-8','cache-control':'no-store'}; if(url.pathname==='/products') h['access-control-allow-origin']='*'; res.writeHead(code,h); res.end(JSON.stringify(data)); };
+  if (req.method === 'OPTIONS') { res.writeHead(204, {'access-control-allow-origin':'*','access-control-allow-methods':'GET,POST,PATCH,DELETE,OPTIONS','access-control-allow-headers':'content-type,x-telegram-init-data,x-smilestore-launch-token'}); res.end(); return; }
   if (url.pathname === '/admin' && req.method === 'GET') { try { res.writeHead(200, {'content-type':'text/html; charset=utf-8','cache-control':'no-store'}); res.end(readFileSync(new URL('./admin.html', import.meta.url))); } catch(e) { console.error(e); res.writeHead(500); res.end('Admin app unavailable'); } return; }
   if (url.pathname === '/products' && req.method === 'GET') { try { sendJson(200, await getProducts()); } catch(e) { console.error('Products endpoint error:',e); sendJson(500,[]); } return; }
   if (url.pathname.startsWith('/api/admin/')) {
     try {
-      const adminId = verifyTelegramInitData(req.headers['x-telegram-init-data']);
-      if (!adminId || !(await isRegisteredAdmin(adminId))) { sendJson(401,{error:'Нет доступа. Откройте панель через Telegram-бота.'}); return; }
+      const initAdminId = verifyTelegramInitData(req.headers['x-telegram-init-data']);
+      const launchToken = String(req.headers['x-smilestore-launch-token']||'');
+      const tokenRecord = webAppTokens.get(launchToken);
+      if (tokenRecord && tokenRecord.expiresAt < Date.now()) webAppTokens.delete(launchToken);
+      const adminId = initAdminId || (tokenRecord && tokenRecord.expiresAt >= Date.now() ? tokenRecord.adminId : null);
+      if (!adminId || !(await isRegisteredAdmin(adminId))) { console.warn('Admin authorization rejected: invalid Telegram initData and/or launch token'); sendJson(401,{error:'Нет доступа. Откройте панель кнопкой из меню Telegram-бота.'}); return; }
       if (url.pathname === '/api/admin/products' && req.method === 'GET') { sendJson(200, await getProducts()); return; }
       if (url.pathname === '/api/admin/products' && req.method === 'POST') {
         const b=await readJson(req); const p=cleanProduct(b);
@@ -62,12 +67,13 @@ async function tg(method, body) {
   const r=await fetch(`${API}/${method}`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
   const j=await r.json(); if(!j.ok) console.error('Telegram API error:',j.description); return j.result;
 }
+const mainMenu={keyboard:[[{text:'🖥 Админ-панель',web_app:{url:WEBAPP_URL}}],[{text:'➕ Добавить товар'},{text:'✏️ Редактировать товары'}],[{text:'📦 Наличие товаров'}]],resize_keyboard:true};
 async function send(chat,text,keyboard) {
   const payload={chat_id:chat,text,parse_mode:'HTML'};
-  if(keyboard) payload.reply_markup=keyboard;
+  if(keyboard===mainMenu){const token=randomBytes(32).toString('hex');webAppTokens.set(token,{adminId:String(chat),expiresAt:Date.now()+12*60*60*1000});for(const [k,v] of webAppTokens)if(v.expiresAt<Date.now())webAppTokens.delete(k);payload.reply_markup={...mainMenu,keyboard:mainMenu.keyboard.map(row=>row.map(button=>button.web_app?{...button,web_app:{url:WEBAPP_URL+'?launch_token='+token}}:button))};}
+  else if(keyboard) payload.reply_markup=keyboard;
   return tg('sendMessage',payload);
 }
-const mainMenu={keyboard:[[{text:'🖥 Админ-панель',web_app:{url:WEBAPP_URL}}],[{text:'➕ Добавить товар'},{text:'✏️ Редактировать товары'}],[{text:'📦 Наличие товаров'}]],resize_keyboard:true};
 const inline=(rows)=>({inline_keyboard:rows});
 async function getProducts(){
  const r=await fetch(`${SUPABASE_URL}/rest/v1/smilestore_products?select=*&order=created_at.desc`,{headers});
