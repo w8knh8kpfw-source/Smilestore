@@ -1,5 +1,7 @@
 import 'dotenv/config';
 import http from 'node:http';
+import { readFileSync } from 'node:fs';
+import { createHmac, timingSafeEqual } from 'node:crypto';
 
 const TG_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const ADMIN_CODE = process.env.ADMIN_CODE;
@@ -10,6 +12,7 @@ if (!TG_TOKEN || !ADMIN_CODE || !SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
   process.exit(1);
 }
 const API = `https://api.telegram.org/bot${TG_TOKEN}`;
+const WEBAPP_URL = 'https://smilestorewebservice.onrender.com/admin';
 const headers = { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` };
 let offset = 0;
 const sessions = new Map();
@@ -21,25 +24,37 @@ const categoryLabels = { brush:'Щётки', paste:'Пасты', floss:'Зубн
 const categoryKeyboard = { inline_keyboard: [[{text:'🪥 Щётки',callback_data:'category:brush'},{text:'🧴 Пасты',callback_data:'category:paste'}],[{text:'Зубная нить',callback_data:'category:floss'},{text:'Ополаскиватели',callback_data:'category:mouthwash'}],[{text:'Ирригаторы',callback_data:'category:irrigator'},{text:'Дополнительный уход',callback_data:'category:care'}]] };
 
 const serverHttp = http.createServer(async (req, res) => {
-  if (req.method === 'OPTIONS') {
-    res.writeHead(204, {'access-control-allow-origin':'*','access-control-allow-methods':'GET,OPTIONS','access-control-allow-headers':'content-type'});
-    res.end();
-    return;
-  }
-  if (req.url === '/products' && req.method === 'GET') {
+  const url = new URL(req.url, 'http://localhost');
+  const sendJson = (code, data) => { res.writeHead(code, {'content-type':'application/json; charset=utf-8','cache-control':'no-store'}); res.end(JSON.stringify(data)); };
+  if (req.method === 'OPTIONS') { res.writeHead(204, {'access-control-allow-methods':'GET,POST,PATCH,DELETE,OPTIONS','access-control-allow-headers':'content-type,x-telegram-init-data'}); res.end(); return; }
+  if (url.pathname === '/admin' && req.method === 'GET') { try { res.writeHead(200, {'content-type':'text/html; charset=utf-8','cache-control':'no-store'}); res.end(readFileSync(new URL('./admin.html', import.meta.url))); } catch(e) { console.error(e); res.writeHead(500); res.end('Admin app unavailable'); } return; }
+  if (url.pathname === '/products' && req.method === 'GET') { try { sendJson(200, await getProducts()); } catch(e) { console.error('Products endpoint error:',e); sendJson(500,[]); } return; }
+  if (url.pathname.startsWith('/api/admin/')) {
     try {
-      const data = await getProducts();
-      res.writeHead(200, {'content-type':'application/json','access-control-allow-origin':'*','cache-control':'no-store'});
-      res.end(JSON.stringify(data));
-    } catch (e) {
-      console.error('Products endpoint error:', e);
-      res.writeHead(500, {'access-control-allow-origin':'*'});
-      res.end('[]');
-    }
-    return;
+      const adminId = verifyTelegramInitData(req.headers['x-telegram-init-data']);
+      if (!adminId || !(await isRegisteredAdmin(adminId))) { sendJson(401,{error:'Нет доступа. Откройте панель через Telegram-бота.'}); return; }
+      if (url.pathname === '/api/admin/products' && req.method === 'GET') { sendJson(200, await getProducts()); return; }
+      if (url.pathname === '/api/admin/products' && req.method === 'POST') {
+        const b=await readJson(req); const p=cleanProduct(b);
+        if (!p.name || !p.category || !Number.isFinite(p.price) || p.price<0) { sendJson(400,{error:'Проверьте название, категорию и цену.'}); return; }
+        const result=await upsertProduct({...p,status:p.status||'available'}); sendJson(201,result[0]||{ok:true}); return;
+      }
+      if (url.pathname === '/api/admin/upload' && req.method === 'POST') {
+        const b=await readJson(req); const m=String(b.image||'').match(/^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/);
+        if(!m){sendJson(400,{error:'Выберите изображение JPG, PNG или WEBP.'});return;}
+        const bytes=Buffer.from(m[2],'base64'); if(bytes.length>8*1024*1024){sendJson(413,{error:'Изображение больше 8 МБ.'});return;}
+        const ext=m[1].split('/')[1].replace('jpeg','jpg'); const path='products/'+Date.now()+'-'+Math.random().toString(36).slice(2)+'.'+ext;
+        const up=await fetch(SUPABASE_URL+'/storage/v1/object/smilestore-images/'+path,{method:'POST',headers:{...headers,'content-type':m[1],'x-upsert':'true'},body:bytes});
+        if(!up.ok) throw new Error('Storage upload '+up.status+' '+await up.text());
+        sendJson(200,{url:SUPABASE_URL+'/storage/v1/object/public/smilestore-images/'+path}); return;
+      }
+      const match=url.pathname.match(/^\/api\/admin\/products\/([^/]+)$/);
+      if(match && req.method==='PATCH'){const b=await readJson(req);const p=cleanProduct(b);if(!p.name||!p.category||!Number.isFinite(p.price)||p.price<0){sendJson(400,{error:'Проверьте название, категорию и цену.'});return;}const result=await patchProduct(match[1],p);sendJson(200,result[0]||{ok:true});return;}
+      if(match && req.method==='DELETE'){await deleteProduct(match[1]);sendJson(200,{ok:true});return;}
+      sendJson(404,{error:'Маршрут не найден.'}); return;
+    } catch(e) { console.error('Admin API error:',e); sendJson(500,{error:'Не удалось выполнить операцию. Проверьте соединение и попробуйте снова.'}); return; }
   }
-  res.writeHead(200, {'content-type':'text/plain'});
-  res.end('SmileStore bot is running');
+  res.writeHead(200, {'content-type':'text/plain'}); res.end('SmileStore bot is running');
 });
 serverHttp.listen(process.env.PORT || 10000, '0.0.0.0', ()=>console.log('SmileStore bot listening'));
 
@@ -52,7 +67,7 @@ async function send(chat,text,keyboard) {
   if(keyboard) payload.reply_markup=keyboard;
   return tg('sendMessage',payload);
 }
-const mainMenu={keyboard:[[{text:'➕ Добавить товар'},{text:'✏️ Редактировать товары'}],[{text:'📦 Наличие товаров'}]],resize_keyboard:true};
+const mainMenu={keyboard:[[{text:'🖥 Админ-панель',web_app:{url:WEBAPP_URL}}],[{text:'➕ Добавить товар'},{text:'✏️ Редактировать товары'}],[{text:'📦 Наличие товаров'}]],resize_keyboard:true};
 const inline=(rows)=>({inline_keyboard:rows});
 async function getProducts(){
  const r=await fetch(`${SUPABASE_URL}/rest/v1/smilestore_products?select=*&order=created_at.desc`,{headers});
@@ -85,6 +100,11 @@ async function uploadImage(fileId){
  return `${SUPABASE_URL}/storage/v1/object/public/smilestore-images/${path}`;
 }
 function admin(chat){return admins.has(String(chat));}
+async function isRegisteredAdmin(id){const r=await fetch(SUPABASE_URL+'/rest/v1/smilestore_admins?select=telegram_id&telegram_id=eq.'+encodeURIComponent(id)+'&limit=1',{headers});if(!r.ok)throw new Error('Admin lookup '+r.status);return (await r.json()).length>0;}
+async function registerAdmin(id){const r=await fetch(SUPABASE_URL+'/rest/v1/smilestore_admins?on_conflict=telegram_id',{method:'POST',headers:{...headers,'content-type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({telegram_id:id})});if(!r.ok)throw new Error('Admin registration '+r.status+' '+await r.text());}
+function verifyTelegramInitData(raw){try{if(!raw||typeof raw!=='string')return null;const params=new URLSearchParams(raw);const hash=params.get('hash');if(!hash)return null;const authDate=Number(params.get('auth_date'));if(!authDate||Math.abs(Date.now()/1000-authDate)>86400)return null;const pairs=[...params.entries()].filter(([k])=>k!=='hash').sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>k+'='+v);const secret=createHmac('sha256','WebAppData').update(TG_TOKEN).digest();const check=createHmac('sha256',secret).update(pairs.join('\\n')).digest('hex');if(hash.length!==check.length||!timingSafeEqual(Buffer.from(hash,'hex'),Buffer.from(check,'hex')))return null;const user=JSON.parse(params.get('user')||'{}');return user.id?String(user.id):null;}catch{return null;}}
+async function readJson(req){let raw='';for await(const chunk of req){raw+=chunk;if(raw.length>12*1024*1024)throw new Error('Request too large');}return JSON.parse(raw||'{}');}
+function cleanProduct(b){const allowed=['brush','paste','floss','mouthwash','irrigator','care'];return {name:String(b.name||'').trim().slice(0,100),category:allowed.includes(b.category)?b.category:'care',description:String(b.description||'').trim().slice(0,500),price:Number(b.price),status:['available','preorder','unavailable'].includes(b.status)?b.status:'available',...(b.image_url?{image_url:String(b.image_url)}:{})};}
 function session(chat){if(!sessions.has(chat))sessions.set(chat,{});return sessions.get(chat);}
 function reset(chat){sessions.delete(chat);}
 async function editList(chat,mode){
@@ -100,13 +120,16 @@ async function statusList(chat){
 async function handleMessage(m){
  const chat=m.chat.id, txt=m.text||'', s=session(chat);
  if(txt==='/start'){
-   reset(chat); await send(chat,'Здравствуйте! Я бот управления <b>SmileStore</b>.\nДля входа в админ-панель введите код администратора.',{});
+   reset(chat);
+   try { if(await isRegisteredAdmin(m.from.id)){admins.add(String(chat));await send(chat,'Здравствуйте! Админ-панель SmileStore готова к работе.',mainMenu);}
+   else await send(chat,'Здравствуйте! Я бот управления <b>SmileStore</b>. Для первого подключения введите код администратора. Повторно вводить его после регистрации не потребуется.'); }
+   catch(e){console.error('Admin check:',e);await send(chat,'Не удалось проверить доступ. Попробуйте позже.');}
    return;
  }
  if(!admin(chat)){
    const now=Date.now(), attempt=failedCodes.get(String(chat))||{count:0,blockedUntil:0};
    if(attempt.blockedUntil>now){await send(chat,'⏳ Слишком много попыток. Попробуйте позже.');return;}
-   if(txt.trim()===ADMIN_CODE){admins.add(String(chat));failedCodes.delete(String(chat));reset(chat);await send(chat,'✅ Код верный. Доступ к админ-панели открыт.',mainMenu);}
+   if(txt.trim()===ADMIN_CODE){try{await registerAdmin(m.from.id);admins.add(String(chat));failedCodes.delete(String(chat));reset(chat);await send(chat,'✅ Администратор зарегистрирован. Теперь код больше не понадобится.',mainMenu);}catch(e){console.error('Admin registration:',e);await send(chat,'Не удалось сохранить доступ. Попробуйте позже.');}}
    else {attempt.count++;if(attempt.count>=5){attempt.count=0;attempt.blockedUntil=now+10*60*1000;}failedCodes.set(String(chat),attempt);await send(chat,attempt.blockedUntil>now?'⛔ 5 неверных попыток. Вход временно заблокирован на 10 минут.':'⛔ Код не подходит.');}
    return;
  }
