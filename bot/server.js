@@ -34,9 +34,7 @@ const serverHttp = http.createServer(async (req, res) => {
     try {
       const initAdminId = verifyTelegramInitData(req.headers['x-telegram-init-data']);
       const launchToken = String(req.headers['x-smilestore-launch-token']||'');
-      const tokenRecord = webAppTokens.get(launchToken);
-      if (tokenRecord && tokenRecord.expiresAt < Date.now()) webAppTokens.delete(launchToken);
-      const adminId = initAdminId || (tokenRecord && tokenRecord.expiresAt >= Date.now() ? tokenRecord.adminId : null);
+      const adminId = initAdminId || verifyLaunchToken(launchToken);
       if (!adminId || !(await isRegisteredAdmin(adminId))) { console.warn('Admin authorization rejected: invalid Telegram initData and/or launch token'); sendJson(401,{error:'Нет доступа. Откройте панель кнопкой из меню Telegram-бота.'}); return; }
       if (url.pathname === '/api/admin/products' && req.method === 'GET') { sendJson(200, await getProducts()); return; }
       if (url.pathname === '/api/admin/products' && req.method === 'POST') {
@@ -70,7 +68,7 @@ async function tg(method, body) {
 const mainMenu={keyboard:[[{text:'🖥 Админ-панель',web_app:{url:WEBAPP_URL}}],[{text:'➕ Добавить товар'},{text:'✏️ Редактировать товары'}],[{text:'📦 Наличие товаров'}]],resize_keyboard:true};
 async function send(chat,text,keyboard) {
   const payload={chat_id:chat,text,parse_mode:'HTML'};
-  if(keyboard===mainMenu){const token=randomBytes(32).toString('hex');webAppTokens.set(token,{adminId:String(chat),expiresAt:Date.now()+12*60*60*1000});for(const [k,v] of webAppTokens)if(v.expiresAt<Date.now())webAppTokens.delete(k);payload.reply_markup={...mainMenu,keyboard:mainMenu.keyboard.map(row=>row.map(button=>button.web_app?{...button,web_app:{url:WEBAPP_URL+'?launch_token='+token}}:button))};}
+  if(keyboard===mainMenu){const tokenPayload=Buffer.from(JSON.stringify({id:String(chat),exp:Date.now()+12*60*60*1000})).toString('base64url');const tokenSig=createHmac('sha256',TG_TOKEN).update(tokenPayload).digest('hex');const token=tokenPayload+'.'+tokenSig;payload.reply_markup={...mainMenu,keyboard:mainMenu.keyboard.map(row=>row.map(button=>button.web_app?{...button,web_app:{url:WEBAPP_URL+'?launch_token='+token}}:button))};}
   else if(keyboard) payload.reply_markup=keyboard;
   return tg('sendMessage',payload);
 }
@@ -108,6 +106,7 @@ async function uploadImage(fileId){
 function admin(chat){return admins.has(String(chat));}
 async function isRegisteredAdmin(id){const r=await fetch(SUPABASE_URL+'/rest/v1/smilestore_admins?select=telegram_id&telegram_id=eq.'+encodeURIComponent(id)+'&limit=1',{headers});if(!r.ok)throw new Error('Admin lookup '+r.status);return (await r.json()).length>0;}
 async function registerAdmin(id){const r=await fetch(SUPABASE_URL+'/rest/v1/smilestore_admins?on_conflict=telegram_id',{method:'POST',headers:{...headers,'content-type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({telegram_id:id})});if(!r.ok)throw new Error('Admin registration '+r.status+' '+await r.text());}
+function verifyLaunchToken(token){try{if(!token||typeof token!=='string')return null;const [payload,sig]=token.split('.');if(!payload||!sig||!/^[a-f0-9]{64}$/i.test(sig))return null;const expected=createHmac('sha256',TG_TOKEN).update(payload).digest();const supplied=Buffer.from(sig,'hex');if(supplied.length!==expected.length||!timingSafeEqual(supplied,expected))return null;const data=JSON.parse(Buffer.from(payload,'base64url').toString('utf8'));if(!data.id||!Number.isFinite(data.exp)||data.exp<Date.now()||data.exp>Date.now()+12*60*60*1000+60000)return null;return String(data.id);}catch{return null;}}
 function verifyTelegramInitData(raw){try{if(!raw||typeof raw!=='string')return null;const params=new URLSearchParams(raw);const hash=params.get('hash');if(!hash||!/^[a-f0-9]{64}$/i.test(hash))return null;const authDate=Number(params.get('auth_date'));if(!authDate||Date.now()/1000-authDate>86400||authDate-Date.now()/1000>60)return null;const pairs=[...params.entries()].filter(([k])=>k!=='hash').sort(([a],[b])=>a<b?-1:a>b?1:0).map(([k,v])=>k+'='+v);const secret=createHmac('sha256','WebAppData').update(TG_TOKEN).digest();const check=createHmac('sha256',secret).update(pairs.join('\n')).digest('hex');const supplied=Buffer.from(hash,'hex'),expected=Buffer.from(check,'hex');if(supplied.length!==expected.length||!timingSafeEqual(supplied,expected))return null;const user=JSON.parse(params.get('user')||'{}');return user.id?String(user.id):null;}catch{return null;}}
 async function readJson(req){let raw='';for await(const chunk of req){raw+=chunk;if(raw.length>12*1024*1024)throw new Error('Request too large');}return JSON.parse(raw||'{}');}
 function cleanProduct(b){const allowed=['brush','paste','floss','mouthwash','irrigator','care'];return {name:String(b.name||'').trim().slice(0,100),category:allowed.includes(b.category)?b.category:'care',description:String(b.description||'').trim().slice(0,500),price:Number(b.price),status:['available','preorder','unavailable'].includes(b.status)?b.status:'available',...(b.image_url?{image_url:String(b.image_url)}:{})};}
