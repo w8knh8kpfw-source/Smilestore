@@ -165,7 +165,11 @@ async function callback(q){
 async function loop(){
  while(true){try{
   const updates=await fetch(`${API}/getUpdates?timeout=25&offset=${offset}`).then(r=>r.json());
-  if(updates.ok)for(const u of updates.result){offset=u.update_id+1;if(u.message)await handleMessage(u.message);if(u.callback_query)await callback(u.callback_query);}
+  if(!updates.ok){console.error('Telegram getUpdates error:',updates.error_code,updates.description);await new Promise(r=>setTimeout(r,3000));continue;}
+  for(const u of updates.result){offset=u.update_id+1;if(u.message)await handleMessage(u.message);if(u.callback_query)await callback(u.callback_query);}
  }catch(e){console.error('Polling error',e);await new Promise(r=>setTimeout(r,3000));}}
 }
+const webhookCleared = await tg('deleteWebhook', {drop_pending_updates:false});
+if (webhookCleared === true) console.log('Telegram webhook cleared; long polling enabled.');
+else console.error('Could not clear Telegram webhook; polling may not receive updates.');
 loop();
