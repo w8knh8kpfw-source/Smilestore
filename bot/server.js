@@ -11,6 +11,8 @@ if (!TG_TOKEN || !ADMIN_CODE || !SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
   process.exit(1);
 }
 const API = `https://api.telegram.org/bot${TG_TOKEN}`;
+const WEBHOOK_SECRET = createHmac('sha256', TG_TOKEN).update('smilestore-webhook').digest('hex');
+const processedUpdates = new Set();
 const MAIN_SITE_URL = 'https://smilestore-m8kq.onrender.com';
 const headers = { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` };
 let offset = 0;
@@ -25,6 +27,25 @@ const categoryKeyboard = { inline_keyboard: [[{text:'🪥 Щётки',callback_d
 const serverHttp = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
   const sendJson = (code, data) => { const h={'content-type':'application/json; charset=utf-8','cache-control':'no-store'}; if(url.pathname==='/products') h['access-control-allow-origin']='*'; res.writeHead(code,h); res.end(JSON.stringify(data)); };
+  if (url.pathname === '/telegram/webhook' && req.method === 'POST') {
+    if (req.headers['x-telegram-bot-api-secret-token'] !== WEBHOOK_SECRET) { res.writeHead(403); res.end('Forbidden'); return; }
+    try {
+      const update = await readJson(req);
+      if (Number.isInteger(update.update_id) && processedUpdates.has(update.update_id)) { res.writeHead(200); res.end('ok'); return; }
+      if (update.message) await handleMessage(update.message);
+      if (update.callback_query) await callback(update.callback_query);
+      if (Number.isInteger(update.update_id)) {
+        processedUpdates.add(update.update_id);
+        if (processedUpdates.size > 1000) processedUpdates.delete(processedUpdates.values().next().value);
+      }
+      res.writeHead(200, {'content-type':'text/plain'}); res.end('ok');
+    } catch (e) {
+      console.error('Telegram webhook update failed:', e);
+      res.writeHead(500, {'content-type':'text/plain'}); res.end('Update processing failed');
+    }
+    return;
+  }
+  if (url.pathname === '/healthz' && req.method === 'GET') { res.writeHead(200, {'content-type':'application/json','cache-control':'no-store'}); res.end(JSON.stringify({ok:true,service:'smilestore'})); return; }
   if (req.method === 'OPTIONS') { res.writeHead(204, {'access-control-allow-origin':'*','access-control-allow-methods':'GET,POST,PATCH,DELETE,OPTIONS','access-control-allow-headers':'content-type,x-telegram-init-data'}); res.end(); return; }
   if (url.pathname === '/products' && req.method === 'GET') { try { sendJson(200, await getProducts()); } catch(e) { console.error('Products endpoint error:',e); sendJson(500,[]); } return; }
   if (url.pathname.startsWith('/api/admin/')) {
@@ -169,7 +190,21 @@ async function loop(){
   for(const u of updates.result){offset=u.update_id+1;if(u.message)await handleMessage(u.message);if(u.callback_query)await callback(u.callback_query);}
  }catch(e){console.error('Polling error',e);await new Promise(r=>setTimeout(r,3000));}}
 }
-const webhookCleared = await tg('deleteWebhook', {drop_pending_updates:false});
-if (webhookCleared === true) console.log('Telegram webhook cleared; long polling enabled.');
-else console.error('Could not clear Telegram webhook; polling may not receive updates.');
-loop();
+try {
+  const webhookSet = await tg('setWebhook', {
+    url: 'https://smilestorewebservice.onrender.com/telegram/webhook',
+    secret_token: WEBHOOK_SECRET,
+    allowed_updates: ['message', 'callback_query'],
+    drop_pending_updates: false
+  });
+  if (webhookSet === true) console.log('Telegram webhook configured; incoming updates use HTTPS webhook.');
+  else {
+    console.error('Telegram webhook setup returned no success; falling back to long polling.');
+    await tg('deleteWebhook', {drop_pending_updates:false});
+    loop();
+  }
+} catch (e) {
+  console.error('Telegram webhook setup failed; falling back to long polling:', e);
+  try { await tg('deleteWebhook', {drop_pending_updates:false}); } catch (cleanupError) { console.error('Webhook cleanup failed:', cleanupError); }
+  loop();
+}
