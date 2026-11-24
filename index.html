@@ -261,7 +261,7 @@ document.getElementById('year').textContent=new Date().getFullYear();
    const bottom=document.createElement('div');bottom.className='product-bottom';
    const price=document.createElement('span');price.className='price';price.textContent=(p.price??'Уточняйте')+' сомони';
    const open=document.createElement('button');open.type='button';open.className='card-open';open.setAttribute('aria-label','Подробнее о товаре');open.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>';
-   bottom.append(price,tag,open);body.append(brandMark,category,title,desc,bottom);article.append(imageBox,body);grid.insertBefore(article,empty);
+   bottom.append(price,tag,open);imageBox.append(img);body.append(brandMark,category,title,desc,bottom);article.append(imageBox,body);grid.insertBefore(article,empty);
    article.addEventListener('click',()=>showProductModal({image:img.src,title:name,category:category.textContent,description:p.description,usage:p.usage_instructions,price:(p.price??'Уточняйте')+' сомони',brand:brand.name,brandClass:brand.cls}));
   });
   window.smileLoaderSet?.(72,'Загружаем изображения товаров…','Изображения');
