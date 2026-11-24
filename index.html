@@ -141,8 +141,50 @@ footer{color:#8392a5}.footer-brand{color:#1a2b42}
  .hero h1{font-size:40px!important}
 }
 </style>
+
+<style id="smilestore-loading-screen">
+#smile-loader{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;padding:24px;background:radial-gradient(ellipse at 50% 38%,#173d65 0%,#0b2542 42%,#06172b 100%);color:#f1f7ff;opacity:1;visibility:visible;transition:opacity .55s ease,visibility .55s ease}
+#smile-loader.is-done{opacity:0;visibility:hidden;pointer-events:none}
+#smile-loader .loader-inner{width:min(360px,100%);text-align:center}
+#smile-loader .loader-symbol{width:78px;height:78px;margin:0 auto 25px;display:grid;place-items:center;border:1px solid rgba(165,210,250,.24);border-radius:26px;background:linear-gradient(145deg,rgba(117,183,255,.2),rgba(255,255,255,.035));box-shadow:0 18px 55px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.14);position:relative}
+#smile-loader .loader-symbol:before{content:"";position:absolute;inset:-7px;border:1px solid rgba(117,183,255,.13);border-radius:31px;animation:smile-pulse 2s ease-in-out infinite}
+#smile-loader svg{width:43px;height:43px;display:block}
+#smile-loader .loader-wordmark{font:800 29px/1 Manrope,Arial,sans-serif;letter-spacing:-1.5px}
+#smile-loader .loader-wordmark span{color:#7dbdff}
+#smile-loader .loader-caption{margin-top:12px;color:#9db8d5;font-size:10px;letter-spacing:2.5px;text-transform:uppercase}
+#smile-loader .loader-status{margin:34px 0 13px;color:#d9eaff;font-size:13px;letter-spacing:.15px}
+#smile-loader .loader-track{height:4px;width:100%;overflow:hidden;border-radius:99px;background:rgba(205,229,255,.13);box-shadow:inset 0 1px 2px rgba(0,0,0,.25)}
+#smile-loader .loader-progress{height:100%;width:8%;border-radius:99px;background:linear-gradient(90deg,#4e9de8,#b7ddff);box-shadow:0 0 16px rgba(104,178,246,.75);transition:width .55s cubic-bezier(.2,.8,.2,1)}
+#smile-loader .loader-foot{display:flex;justify-content:space-between;margin-top:10px;color:#7897b8;font-size:10px;letter-spacing:.5px}
+@keyframes smile-pulse{0%,100%{transform:scale(1);opacity:.5}50%{transform:scale(1.08);opacity:1}}
+@media(prefers-reduced-motion:reduce){#smile-loader,#smile-loader .loader-progress,#smile-loader .loader-symbol:before{transition:none;animation:none}}
+</style>
+
 </head>
 <body>
+<div id="smile-loader" role="status" aria-live="polite">
+ <div class="loader-inner">
+  <div class="loader-symbol" aria-hidden="true">
+   <svg viewBox="0 0 48 48" fill="none">
+    <path d="M15.2 7.5c-4.8 0-8 3.7-8 9.3 0 7.1 4.4 17.5 7.7 22.1 1.3 1.8 3.3 1.6 4.1-.5l2.1-6.2c.8-2.4 3-2.4 3.8 0l2.1 6.2c.8 2.1 2.8 2.3 4.1.5 3.3-4.6 7.7-15 7.7-22.1 0-5.6-3.2-9.3-8-9.3-3.3 0-5.5 1.8-7.8 1.8s-4.5-1.8-7.8-1.8Z" stroke="#B9DFFF" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M17 18.5c1.4-1.4 3.2-2 5-2" stroke="#7DBDFF" stroke-width="2" stroke-linecap="round"/>
+   </svg>
+  </div>
+  <div class="loader-wordmark"><span>smile</span>store</div>
+  <div class="loader-caption">Care for your smile</div>
+  <div class="loader-status" id="smile-loader-status">Открываем SmileStore…</div>
+  <div class="loader-track"><div class="loader-progress" id="smile-loader-progress"></div></div>
+  <div class="loader-foot"><span id="smile-loader-step">Подготовка</span><span id="smile-loader-percent">8%</span></div>
+ </div>
+</div>
+<script>
+(function(){
+ const root=document.getElementById('smile-loader'),bar=document.getElementById('smile-loader-progress'),status=document.getElementById('smile-loader-status'),step=document.getElementById('smile-loader-step'),percent=document.getElementById('smile-loader-percent');
+ window.smileLoaderSet=function(value,label,stage){const n=Math.max(0,Math.min(100,value));if(bar)bar.style.width=n+'%';if(percent)percent.textContent=Math.round(n)+'%';if(status&&label)status.textContent=label;if(step&&stage)step.textContent=stage;};
+ window.smileLoaderDone=function(){if(!root||root.classList.contains('is-done'))return;window.smileLoaderSet(100,'Витрина готова','Готово');setTimeout(()=>{root.classList.add('is-done');setTimeout(()=>root.remove(),650);},220);};
+ setTimeout(()=>{if(root&&!root.classList.contains('is-done'))window.smileLoaderDone();},14000);
+})();
+</script>
 <header><div class="wrap nav">
 <a class="brand" href="#"><b>smile</b>store</a>
 <nav class="nav-links"><a href="#catalog">Каталог</a><a href="#about">О нас</a><a href="#contact">Контакты</a></nav>
@@ -198,16 +240,18 @@ document.getElementById('year').textContent=new Date().getFullYear();
  const grid=document.querySelector('.products'),filterBox=document.getElementById('categoryFilters'),search=document.getElementById('search');
  const empty=document.getElementById('empty');let active='all',allCards=[];
  try{
+  window.smileLoaderSet?.(24,'Подключаем каталог товаров…','Каталог');
   const resp=await fetch('https://smilestorewebservice.onrender.com/products',{cache:'no-store'});
   if(!resp.ok)throw new Error('Не удалось загрузить каталог: '+resp.status);
   const items=await resp.json();if(!Array.isArray(items))throw new Error('Некорректный ответ каталога');
+  window.smileLoaderSet?.(48,'Собираем витрину SmileStore…','Подготовка товаров');
   const available=items.filter(p=>p&&p.status!=='deleted');
   grid.querySelectorAll('.product').forEach(el=>el.remove());
   available.forEach(p=>{
    const name=p.name||'Товар',brand=getBrand(name),article=document.createElement('article');
    article.className='product';article.dataset.category=p.category||'care';article.dataset.name=name.toLowerCase();article.dataset.brand=brand.name.toLowerCase();
    const imageBox=document.createElement('div');imageBox.className='product-image';
-   const img=document.createElement('img');img.src=p.image_url||fallbackImage;img.alt=name;img.loading='lazy';img.onerror=()=>{img.onerror=null;img.src=fallbackImage;};
+   const img=document.createElement('img');img.alt=name;img.loading='eager';img.decoding='async';img.fetchPriority='high';img.onerror=()=>{img.onerror=null;img.src=fallbackImage;};img.src=p.image_url||fallbackImage;
    const tag=document.createElement('span');tag.className='product-tag';tag.textContent=({available:'В наличии',preorder:'Предзаказ',unavailable:'Нет в наличии'})[p.status]||'Товар';
    const body=document.createElement('div');body.className='product-body';
    const brandMark=document.createElement('div');brandMark.className='brand-mark '+brand.cls;brandMark.textContent=brand.name;
@@ -220,6 +264,11 @@ document.getElementById('year').textContent=new Date().getFullYear();
    bottom.append(price,tag,open);body.append(brandMark,category,title,desc,bottom);article.append(imageBox,body);grid.insertBefore(article,empty);
    article.addEventListener('click',()=>showProductModal({image:img.src,title:name,category:category.textContent,description:p.description,usage:p.usage_instructions,price:(p.price??'Уточняйте')+' сомони',brand:brand.name,brandClass:brand.cls}));
   });
+  window.smileLoaderSet?.(72,'Загружаем изображения товаров…','Изображения');
+  const catalogImages=[...grid.querySelectorAll('.product-image img')];
+  const imageLoads=catalogImages.map(img=>img.complete?Promise.resolve():new Promise(resolve=>{img.addEventListener('load',resolve,{once:true});img.addEventListener('error',resolve,{once:true});}));
+  await Promise.race([Promise.all(imageLoads),new Promise(resolve=>setTimeout(resolve,6500))]);
+  window.smileLoaderSet?.(94,'Завершаем оформление каталога…','Почти готово');
   allCards=[...grid.querySelectorAll('.product')];
   const counts=new Map();allCards.forEach(card=>counts.set(card.dataset.category,(counts.get(card.dataset.category)||0)+1));
   filterBox.innerHTML='';
@@ -232,8 +281,8 @@ document.getElementById('year').textContent=new Date().getFullYear();
   const glider=document.createElement('span');glider.className='filter-glider';glider.setAttribute('aria-hidden','true');filterBox.prepend(glider);
   function moveGlider(){const selected=filterBox.querySelector('.filter.active');if(!selected)return;glider.style.width=selected.offsetWidth+'px';glider.style.transform='translateX('+selected.offsetLeft+'px)';}
   function refresh(){const q=(search.value||'').trim().toLowerCase();let count=0;allCards.forEach(card=>{const shown=(active==='all'||card.dataset.category===active)&&(!activeBrand||card.dataset.brand===activeBrand)&&(`${card.dataset.name} ${card.dataset.brand}`).includes(q);card.style.display=shown?'':'none';if(shown)count++;});empty.style.display=count?'none':'block';moveGlider();}
-  search.addEventListener('input',refresh);window.addEventListener('resize',moveGlider);requestAnimationFrame(moveGlider);refresh();
- }catch(error){console.error('SmileStore catalogue:',error);empty.textContent='Не удалось загрузить каталог. Попробуйте обновить страницу.';empty.style.display='block';}
+  search.addEventListener('input',refresh);window.addEventListener('resize',moveGlider);requestAnimationFrame(moveGlider);refresh();window.smileLoaderDone?.();
+ }catch(error){console.error('SmileStore catalogue:',error);empty.textContent='Не удалось загрузить каталог. Попробуйте обновить страницу.';empty.style.display='block';window.smileLoaderDone?.();}
 })();
 </script>
 
