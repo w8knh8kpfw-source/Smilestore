@@ -148,6 +148,7 @@ footer{color:#8392a5}.footer-brand{color:#1a2b42}
 <nav class="nav-links"><a href="#catalog">Каталог</a><a href="#about">О нас</a><a href="#contact">Контакты</a></nav>
 <div class="nav-right"><a class="nav-ig" href="https://instagram.com/Smilestore_tj" target="_blank" rel="noopener" aria-label="Открыть Instagram SmileStore"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.7" r=".8" fill="currentColor" stroke="none"/></svg><span>Instagram</span></a></div>
 </div></header>
+<div class="brand-marquee" aria-label="Бренды SmileStore"><div class="brand-marquee-track" id="brandMarquee"></div></div>
 <main>
 <section class="hero"><div class="wrap hero-grid">
 <div><div class="eyebrow">SmileStore · Khujand</div><h1>Всё для твоей <span>улыбки.</span></h1><p>Средства для ухода за полостью рта, которые помогают сделать ежедневную заботу о себе простой и приятной.</p><div class="hero-actions"><a class="button" href="#catalog">Перейти в каталог <span><svg class="icon-arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17 17 7M7 7h10v10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a><a class="quiet-link" href="#about">О магазине</a></div></div>
@@ -156,7 +157,7 @@ footer{color:#8392a5}.footer-brand{color:#1a2b42}
 <section class="intro"><div class="wrap"><div class="intro-row"><div><div class="eyebrow-small">Твой уход — твои правила</div><h2>Меньше лишнего.<br>Больше внимания себе.</h2></div><p class="intro-copy">Собери свою ежедневную рутину из простых и нужных вещей. В каталоге собраны примеры категорий SmileStore.</p></div>
 <div class="category-strip"><div class="category"><div class="category-num"><svg class="category-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M7 9.5c0-2 1.6-3.5 3.6-3.5 2.2 0 3.1 1.4 5.4 1.4S19.2 6 21.4 6C23.4 6 25 7.5 25 9.5c0 3.2-2.2 5.1-3.1 8.1-.9 3-1.2 8.4-3.5 8.4-1.3 0-1.5-3.6-2.4-3.6s-1.1 3.6-2.4 3.6c-2.3 0-2.6-5.4-3.5-8.4C9.2 14.6 7 12.7 7 9.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M11 12h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>01 / ОСНОВА</span></div><h3>Чистота каждый день</h3><p>Зубные щётки и пасты для привычного ежедневного ухода.</p></div><div class="category"><div class="category-num"><svg class="category-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M7 8.5h18M9 8.5l1.5 17h11L23 8.5M13 8.5V6h6v2.5M13 13v8M19 13v8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span>02 / ДОПОЛНЕНИЕ</span></div><h3>Забота в деталях</h3><p>Нить, ополаскиватели и аксессуары для дополнительного ухода.</p></div><div class="category"><div class="category-num"><svg class="category-icon" viewBox="0 0 32 32" aria-hidden="true"><circle cx="14" cy="14" r="7.5" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="m20 20 6 6M11 14h6M14 11v6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><span>03 / ТВОЙ ВЫБОР</span></div><h3>Подбор под себя</h3><p>Выбирай товары и собирай удобную рутину ухода.</p></div></div></div></section>
 <section class="catalog" id="catalog"><div class="wrap"><div class="catalog-head"><div><div class="eyebrow-small">Подборка SmileStore</div><h2>Каталог товаров</h2></div><p class="catalog-note">Подборка товаров для ежедневного ухода. Цены указаны в сомони.</p></div>
-<div class="catalog-controls"><div class="filters" id="categoryFilters" aria-label="Категории товаров"></div><input class="search" id="search" type="search" placeholder="Поиск по каталогу" aria-label="Поиск товаров"></div>
+<div class="catalog-controls"><div class="filters" id="categoryFilters" aria-label="Категории товаров"></div><input class="search" id="search" type="search" placeholder="Поиск по товарам и брендам" aria-label="Поиск товаров и брендов"></div>
 <div class="products">
 <div class="empty" id="empty">По этому запросу ничего не найдено.</div>
 </div></div></section>
@@ -204,7 +205,7 @@ document.getElementById('year').textContent=new Date().getFullYear();
   grid.querySelectorAll('.product').forEach(el=>el.remove());
   available.forEach(p=>{
    const name=p.name||'Товар',brand=getBrand(name),article=document.createElement('article');
-   article.className='product';article.dataset.category=p.category||'care';article.dataset.name=name.toLowerCase();
+   article.className='product';article.dataset.category=p.category||'care';article.dataset.name=name.toLowerCase();article.dataset.brand=brand.name.toLowerCase();
    const imageBox=document.createElement('div');imageBox.className='product-image';
    const img=document.createElement('img');img.src=p.image_url||fallbackImage;img.alt=name;img.loading='lazy';img.onerror=()=>{img.onerror=null;img.src=fallbackImage;};
    const tag=document.createElement('span');tag.className='product-tag';tag.textContent=({available:'В наличии',preorder:'Предзаказ',unavailable:'Нет в наличии'})[p.status]||'Товар';
@@ -224,10 +225,14 @@ document.getElementById('year').textContent=new Date().getFullYear();
   const counts=new Map();allCards.forEach(card=>counts.set(card.dataset.category,(counts.get(card.dataset.category)||0)+1));
   filterBox.innerHTML='';
   const buttons=[{key:'all',label:'Все товары'},...Object.entries(categoryNames).filter(([key])=>counts.has(key)).map(([key,label])=>({key,label}))];
+  const presentBrands=[...new Set(allCards.map(card=>card.dataset.brand))];
+  const marquee=document.getElementById('brandMarquee');
+  if(marquee){const brandNames=presentBrands.map(key=>brandInfo.find(b=>b.name.toLowerCase()===key)?.name||key.toUpperCase());const sequence=[...brandNames,...brandNames,...brandNames];sequence.forEach((label,index)=>{const item=document.createElement('button');item.type='button';item.className='brand-marquee-item';item.textContent=label;item.setAttribute('aria-label','Показать товары бренда '+label);item.addEventListener('click',()=>{activeBrand=activeBrand===label.toLowerCase()?'':label.toLowerCase();refresh();document.getElementById('catalog').scrollIntoView({behavior:'smooth'});});marquee.append(item);if(index<sequence.length-1){const dot=document.createElement('span');dot.className='brand-marquee-dot';dot.textContent='✦';marquee.append(dot);}});}
+  let activeBrand='';
   buttons.forEach((item,index)=>{const btn=document.createElement('button');btn.type='button';btn.className='filter'+(index===0?' active':'');btn.dataset.filter=item.key;btn.textContent=item.label;btn.addEventListener('click',()=>{active=item.key;filterBox.querySelectorAll('.filter').forEach(b=>b.classList.toggle('active',b===btn));refresh();});filterBox.append(btn);});
   const glider=document.createElement('span');glider.className='filter-glider';glider.setAttribute('aria-hidden','true');filterBox.prepend(glider);
   function moveGlider(){const selected=filterBox.querySelector('.filter.active');if(!selected)return;glider.style.width=selected.offsetWidth+'px';glider.style.transform='translateX('+selected.offsetLeft+'px)';}
-  function refresh(){const q=(search.value||'').trim().toLowerCase();let count=0;allCards.forEach(card=>{const shown=(active==='all'||card.dataset.category===active)&&card.dataset.name.includes(q);card.style.display=shown?'':'none';if(shown)count++;});empty.style.display=count?'none':'block';moveGlider();}
+  function refresh(){const q=(search.value||'').trim().toLowerCase();let count=0;allCards.forEach(card=>{const shown=(active==='all'||card.dataset.category===active)&&(!activeBrand||card.dataset.brand===activeBrand)&&(`${card.dataset.name} ${card.dataset.brand}`).includes(q);card.style.display=shown?'':'none';if(shown)count++;});empty.style.display=count?'none':'block';moveGlider();}
   search.addEventListener('input',refresh);window.addEventListener('resize',moveGlider);requestAnimationFrame(moveGlider);refresh();
  }catch(error){console.error('SmileStore catalogue:',error);empty.textContent='Не удалось загрузить каталог. Попробуйте обновить страницу.';empty.style.display='block';}
 })();
@@ -268,6 +273,78 @@ footer{color:#8fa6c1!important;border-color:rgba(156,190,229,.14)!important}foot
 .modal-info h3{color:#f2f7ff!important}.modal-info p{color:#aec1d9!important}.close{background:#183c60!important;color:#eaf4ff!important;border:1px solid rgba(160,199,239,.24)!important}
 .empty{color:#afc2da!important}.image-unavailable{background:linear-gradient(145deg,#183b60,#0e2745)!important}.image-unavailable:after{color:#a7c9ec!important}
 @media(max-width:700px){.product-body{margin-top:-15px!important;padding-top:20px!important}}
+</style>
+
+<style id="smilestore-liquid-glass-product-refresh">
+/* Product photography: edge-to-edge crop, no inset frame; subtle liquid glass shell */
+.products{gap:24px 18px!important}
+.product,.product:hover{
+  padding:0!important;overflow:hidden!important;min-width:0;
+  border:1px solid rgba(148,196,239,.22)!important;
+  border-radius:23px!important;
+  background:rgba(14,39,66,.64)!important;
+  -webkit-backdrop-filter:blur(22px) saturate(155%)!important;
+  backdrop-filter:blur(22px) saturate(155%)!important;
+  box-shadow:0 12px 34px rgba(0,0,0,.2),inset 0 1px 0 rgba(230,244,255,.09)!important;
+  transition:transform .3s ease,border-color .3s ease,box-shadow .3s ease!important;
+}
+.product:hover{
+  transform:translateY(-4px)!important;
+  border-color:rgba(124,190,248,.42)!important;
+  box-shadow:0 19px 42px rgba(0,0,0,.28),0 0 24px rgba(53,137,211,.09),inset 0 1px 0 rgba(230,244,255,.13)!important;
+}
+.product-image{
+  height:250px!important;width:100%;padding:0!important;margin:0!important;
+  border:0!important;border-radius:22px 22px 0 0!important;
+  overflow:hidden!important;background:#102b49!important;
+}
+.product-image img{
+  display:block!important;width:100%!important;height:100%!important;
+  padding:0!important;margin:0!important;object-fit:cover!important;
+  object-position:center!important;border:0!important;border-radius:0!important;
+  background:transparent!important;filter:saturate(1.04)!important;
+  transition:transform .55s cubic-bezier(.2,.75,.2,1)!important;
+}
+.product:hover .product-image img{transform:scale(1.035)!important}
+.product-body{
+  margin:0!important;padding:14px 14px 15px!important;
+  border-radius:0 0 22px 22px!important;
+  background:linear-gradient(145deg,rgba(18,48,78,.82),rgba(8,29,51,.88))!important;
+  -webkit-backdrop-filter:blur(18px)!important;backdrop-filter:blur(18px)!important;
+}
+.product .brand-mark{margin-bottom:8px!important}
+.product-tag{z-index:2!important;top:12px!important;left:12px!important}
+.product-bottom{margin-top:12px!important}
+.brand-marquee{
+  width:100%;overflow:hidden;position:relative;padding:13px 0;
+  background:linear-gradient(90deg,#071b12,#0b2819 48%,#071b12);
+  border-top:1px solid rgba(133,255,172,.12);
+  border-bottom:1px solid rgba(133,255,172,.16);
+  box-shadow:0 8px 28px rgba(0,0,0,.16),inset 0 0 24px rgba(68,255,127,.035);
+}
+.brand-marquee:before,.brand-marquee:after{content:"";position:absolute;z-index:2;top:0;bottom:0;width:48px;pointer-events:none}
+.brand-marquee:before{left:0;background:linear-gradient(90deg,#071b12,transparent)}
+.brand-marquee:after{right:0;background:linear-gradient(270deg,#071b12,transparent)}
+.brand-marquee-track{display:flex;align-items:center;width:max-content;min-width:100%;gap:25px;animation:smileBrandScroll 34s linear infinite}
+.brand-marquee:hover .brand-marquee-track{animation-play-state:paused}
+.brand-marquee-item{
+  border:0;background:transparent;padding:2px 0;cursor:pointer;white-space:nowrap;
+  color:#a8ffbd;font:800 12px/1 Manrope,sans-serif;letter-spacing:2.3px;
+  text-shadow:0 0 7px rgba(82,255,137,.65),0 0 18px rgba(82,255,137,.25);
+  transition:color .2s,text-shadow .2s,transform .2s
+}
+.brand-marquee-item:hover{color:#e2ffe9;text-shadow:0 0 10px rgba(82,255,137,.9),0 0 24px rgba(82,255,137,.48);transform:scale(1.06)}
+.brand-marquee-dot{color:#51e77c;font-size:10px;text-shadow:0 0 10px rgba(82,255,137,.8)}
+@keyframes smileBrandScroll{from{transform:translateX(0)}to{transform:translateX(-33.3333%)}}
+@media(max-width:700px){
+ .brand-marquee{padding:12px 0}
+ .brand-marquee-track{gap:19px;animation-duration:28s}
+ .brand-marquee-item{font-size:10px;letter-spacing:1.8px}
+ .product{border-radius:18px!important}
+ .product-image{height:clamp(145px,43vw,190px)!important;border-radius:17px 17px 0 0!important}
+ .product-body{padding:11px 10px 12px!important;border-radius:0 0 17px 17px!important}
+}
+@media(prefers-reduced-motion:reduce){.brand-marquee-track{animation:none!important}}
 </style>
 </body></html>
 <style>
