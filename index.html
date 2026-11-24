@@ -538,3 +538,49 @@ footer .footer-instagram svg{width:19px;height:19px;display:block;fill:none;stro
  .nav-ig span{display:none}
 }
 </style>
+
+<style id="smilestore-final-polish">
+/* One continuous product card: image touches the card outline, no nested frame */
+.product,.product:hover{
+  overflow:hidden!important;
+  border:1px solid rgba(143,190,235,.23)!important;
+  border-radius:22px!important;
+  padding:0!important;
+}
+.product-image{
+  display:block!important;width:100%!important;
+  height:250px!important;margin:0!important;padding:0!important;
+  border:0!important;border-radius:0!important;
+  outline:0!important;box-shadow:none!important;
+  overflow:hidden!important;background:#102b49!important;
+}
+.product-image img{
+  display:block!important;width:100%!important;height:100%!important;
+  margin:0!important;padding:0!important;
+  border:0!important;outline:0!important;border-radius:0!important;
+  box-shadow:none!important;object-fit:cover!important;object-position:center!important;
+}
+.product-image:after{display:none!important;content:none!important}
+.product-body{
+  margin:0!important;padding:14px 14px 15px!important;
+  border:0!important;border-radius:0!important;
+  background:linear-gradient(145deg,rgba(18,48,78,.9),rgba(8,29,51,.96))!important;
+}
+.brand-marquee{background:linear-gradient(90deg,#061b0b,#0a260e 48%,#061b0b)!important}
+.brand-marquee-track{animation-duration:21s!important}
+.brand-marquee-item{
+ color:#7CFF00!important;
+ text-shadow:0 0 5px rgba(124,255,0,.95),0 0 12px rgba(124,255,0,.85),0 0 25px rgba(124,255,0,.52)!important;
+}
+.brand-marquee-item:hover{
+ color:#caff91!important;
+ text-shadow:0 0 7px #9dff42,0 0 18px rgba(124,255,0,1),0 0 32px rgba(124,255,0,.7)!important;
+}
+.brand-marquee-dot{color:#9dff42!important;text-shadow:0 0 8px #7CFF00,0 0 18px rgba(124,255,0,.8)!important}
+@media(max-width:700px){
+ .product{border-radius:18px!important}
+ .product-image{height:clamp(145px,43vw,190px)!important;border-radius:0!important}
+ .product-body{margin:0!important;padding:11px 10px 12px!important;border-radius:0!important}
+ .brand-marquee-track{animation-duration:18s!important}
+}
+</style>
