@@ -209,7 +209,6 @@ document.getElementById('year').textContent=new Date().getFullYear();
    const imageBox=document.createElement('div');imageBox.className='product-image';
    const img=document.createElement('img');img.src=p.image_url||fallbackImage;img.alt=name;img.loading='lazy';img.onerror=()=>{img.onerror=null;img.src=fallbackImage;};
    const tag=document.createElement('span');tag.className='product-tag';tag.textContent=({available:'В наличии',preorder:'Предзаказ',unavailable:'Нет в наличии'})[p.status]||'Товар';
-   imageBox.append(img,tag);
    const body=document.createElement('div');body.className='product-body';
    const brandMark=document.createElement('div');brandMark.className='brand-mark '+brand.cls;brandMark.textContent=brand.name;
    const category=document.createElement('div');category.className='product-category';category.textContent=categoryNames[p.category]||'Дополнительный уход';
@@ -218,7 +217,7 @@ document.getElementById('year').textContent=new Date().getFullYear();
    const bottom=document.createElement('div');bottom.className='product-bottom';
    const price=document.createElement('span');price.className='price';price.textContent=(p.price??'Уточняйте')+' сомони';
    const open=document.createElement('button');open.type='button';open.className='card-open';open.setAttribute('aria-label','Подробнее о товаре');open.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>';
-   bottom.append(price,open);body.append(brandMark,category,title,desc,bottom);article.append(imageBox,body);grid.insertBefore(article,empty);
+   bottom.append(price,tag,open);body.append(brandMark,category,title,desc,bottom);article.append(imageBox,body);grid.insertBefore(article,empty);
    article.addEventListener('click',()=>showProductModal({image:img.src,title:name,category:category.textContent,description:p.description,usage:p.usage_instructions,price:(p.price??'Уточняйте')+' сомони',brand:brand.name,brandClass:brand.cls}));
   });
   allCards=[...grid.querySelectorAll('.product')];
@@ -582,5 +581,58 @@ footer .footer-instagram svg{width:19px;height:19px;display:block;fill:none;stro
  .product-image{height:clamp(145px,43vw,190px)!important;border-radius:0!important}
  .product-body{margin:0!important;padding:11px 10px 12px!important;border-radius:0!important}
  .brand-marquee-track{animation-duration:18s!important}
+}
+</style>
+
+
+<style id="smilestore-stock-and-image-fade">
+/* Stock status belongs to the product information row, never over the photo */
+.product-tag{
+  position:static!important;
+  inset:auto!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  flex:0 0 auto!important;
+  width:max-content!important;
+  max-width:46%!important;
+  margin:0 auto 0 10px!important;
+  padding:6px 9px!important;
+  border:1px solid rgba(143,190,235,.2)!important;
+  border-radius:999px!important;
+  background:rgba(112,150,190,.13)!important;
+  color:#d9eaff!important;
+  font-size:9px!important;
+  line-height:1.2!important;
+  letter-spacing:.45px!important;
+  white-space:nowrap!important;
+  text-transform:none!important;
+}
+.product-bottom{
+  display:flex!important;
+  align-items:center!important;
+  gap:7px!important;
+}
+.product-bottom .price{flex:0 1 auto!important;min-width:0}
+.product-bottom .card-open{flex:0 0 34px!important}
+.product-image{position:relative!important;isolation:isolate!important}
+.product-image:after{
+  content:""!important;
+  display:block!important;
+  position:absolute!important;
+  z-index:1!important;
+  pointer-events:none!important;
+  inset:48% 0 0!important;
+  background:linear-gradient(180deg,rgba(13,39,69,0) 0%,rgba(13,39,69,.22) 28%,rgba(13,39,69,.72) 72%,#0d2745 100%)!important;
+  -webkit-backdrop-filter:blur(9px)!important;
+  backdrop-filter:blur(9px)!important;
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.25) 28%,#000 100%)!important;
+  mask-image:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.25) 28%,#000 100%)!important;
+}
+.product-image img{position:relative!important;z-index:0!important}
+@media(max-width:700px){
+ .product-tag{font-size:8px!important;padding:5px 7px!important;margin-left:6px!important;max-width:48%!important}
+ .product-bottom .card-open{flex-basis:30px!important}
+ .product-image:after{inset:53% 0 0!important;-webkit-backdrop-filter:blur(7px)!important;backdrop-filter:blur(7px)!important}
 }
 </style>
