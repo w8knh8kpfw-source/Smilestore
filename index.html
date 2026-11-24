@@ -164,7 +164,7 @@ footer{color:#8392a5}.footer-brand{color:#1a2b42}
 <section class="contact" id="contact"><div class="wrap contact-row"><div><h2>Есть вопросы?</h2><p>Напиши нам — расскажем об ассортименте и поможем с выбором.</p></div><a class="button" href="https://instagram.com/Smilestore_tj" target="_blank" rel="noopener">Связаться в Instagram <svg class="icon-arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17 17 7M7 7h10v10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div></section>
 </main>
 <footer><div class="wrap footer-row"><div class="footer-brand"><b>smile</b>store</div><div>© <span id="year"></span> SmileStore TJ</div><a href="https://instagram.com/Smilestore_tj" target="_blank" rel="noopener">@Smilestore_tj <svg class="icon-arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17 17 7M7 7h10v10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div></footer>
-<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-box"><button class="close" id="close" aria-label="Закрыть"><svg class="icon-close" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button><img id="modalImg" src="" alt=""><div class="modal-info"><div class="eyebrow-small" id="modalCategory"></div><h3 id="modalTitle"></h3><p id="modalDesc"></p><p>Цена указана в сомони.</p><a class="button" href="https://instagram.com/Smilestore_tj" target="_blank" rel="noopener">Написать в Instagram <svg class="icon-arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17 17 7M7 7h10v10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div></div></div>
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-box"><button class="close" id="close" aria-label="Закрыть"><svg class="icon-close" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button><img id="modalImg" src="" alt=""><div class="modal-info"><div class="eyebrow-small" id="modalCategory"></div><h3 id="modalTitle"></h3><div class="modal-label">Описание</div><p id="modalDesc"></p><div class="modal-label">Как использовать</div><p id="modalUsage"></p><div class="modal-label">Стоимость</div><p id="modalPrice"></p><a class="button" href="https://instagram.com/Smilestore_tj" target="_blank" rel="noopener">Написать в Instagram <svg class="icon-arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17 17 7M7 7h10v10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div></div></div>
 <script>
 const fallbackImage='https://images.unsplash.com/photo-1609840114035-3c981b782dfe?auto=format&fit=crop&w=900&q=85';
 document.querySelectorAll('img').forEach(img=>img.addEventListener('error',()=>{if(!img.dataset.fallback){img.dataset.fallback='1';img.src=fallbackImage}else{img.style.display='none';img.parentElement.classList.add('image-unavailable')}}));
@@ -173,7 +173,24 @@ const filters=[...document.querySelectorAll('.filter')],cards=[...document.query
 function moveGlider(){const selected=document.querySelector('.filter.active');if(!selected||!glider)return;const parent=selected.parentElement;const x=selected.offsetLeft-parent.offsetLeft;glider.style.width=selected.offsetWidth+'px';glider.style.transform='translateX('+x+'px)'}
 function apply(){const q=search.value.trim().toLowerCase();let n=0;cards.forEach(c=>{const show=(active==='all'||c.dataset.category===active)&&c.dataset.name.toLowerCase().includes(q);c.style.display=show?'':'none';if(show)n++});document.getElementById('empty').style.display=n?'none':'block'}
 filters.forEach(b=>b.addEventListener('click',()=>{filters.forEach(x=>x.classList.remove('active'));b.classList.add('active');active=b.dataset.filter;moveGlider();apply()}));search.addEventListener('input',apply);window.addEventListener('resize',moveGlider);requestAnimationFrame(moveGlider);
-const modal=document.getElementById('modal');cards.forEach(c=>c.addEventListener('click',()=>{document.getElementById('modalImg').src=c.querySelector('img').src;document.getElementById('modalImg').alt=c.querySelector('img').alt;document.getElementById('modalCategory').textContent=c.querySelector('.product-category').textContent;document.getElementById('modalTitle').textContent=c.querySelector('h3').textContent;document.getElementById('modalDesc').textContent=c.querySelector('.product-desc').textContent;modal.classList.add('open');document.body.style.overflow='hidden'}));
+const modal=document.getElementById('modal');
+function showProductModal(product){
+ document.getElementById('modalImg').src=product.image||'';
+ document.getElementById('modalImg').alt=product.alt||product.title||'Фото товара';
+ document.getElementById('modalCategory').textContent=product.category||'';
+ document.getElementById('modalTitle').textContent=product.title||'Товар';
+ document.getElementById('modalDesc').textContent=product.description||'Описание пока не добавлено.';
+ document.getElementById('modalUsage').textContent=product.usage||'Инструкция пока не добавлена.';
+ document.getElementById('modalPrice').textContent=product.price||'Уточняйте стоимость';
+ modal.classList.add('open');document.body.style.overflow='hidden';
+}
+cards.forEach(c=>c.addEventListener('click',()=>showProductModal({
+ image:c.querySelector('img').src,alt:c.querySelector('img').alt,
+ category:c.querySelector('.product-category').textContent,
+ title:c.querySelector('h3').textContent,
+ description:c.querySelector('.product-desc').textContent,
+ price:'Уточняйте стоимость'
+})));
 function closeModal(){modal.classList.remove('open');document.body.style.overflow=''}document.getElementById('close').addEventListener('click',closeModal);modal.addEventListener('click',e=>{if(e.target===modal)closeModal()});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});document.getElementById('year').textContent=new Date().getFullYear();
 
 // Bot-managed products from SmileStore admin
@@ -198,15 +215,13 @@ function closeModal(){modal.classList.remove('open');document.body.style.overflo
    const desc=document.createElement('div');desc.className='product-desc';desc.textContent=p.description||'';
    const bottom=document.createElement('div');bottom.className='product-bottom';
    const price=document.createElement('span');price.className='price';price.textContent=(p.price||0)+' сомони';
-   const arrow=document.createElement('span');arrow.className='arrow';arrow.textContent='↗';
+   const arrow=document.createElement('button');arrow.type='button';arrow.className='card-open';arrow.setAttribute('aria-label','Подробнее о товаре');arrow.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg>';
    bottom.append(price,arrow);body.append(cat,title,desc,bottom);article.append(imgWrap,body);grid.appendChild(article);
-   article.addEventListener('click',()=>{
-    document.getElementById('modalImg').src=img.src;document.getElementById('modalImg').alt=img.alt;
-    document.getElementById('modalCategory').textContent=categoryNames[p.category]||'Дополнительный уход';
-    document.getElementById('modalTitle').textContent=title.textContent;
-    document.getElementById('modalDesc').textContent=desc.textContent;
-    const modal=document.getElementById('modal');modal.classList.add('open');document.body.style.overflow='hidden';
-   });
+   article.addEventListener('click',()=>showProductModal({
+    image:img.src,alt:img.alt,category:categoryNames[p.category]||'Дополнительный уход',
+    title:p.name||'Товар',description:p.description||'',usage:p.usage_instructions||'',
+    price:(p.price??'')+' сомони'
+   }));
   });
   const allCards=[...document.querySelectorAll('.product')];
   const filters=[...document.querySelectorAll('.filter')],search=document.getElementById('search');let selected='all';
@@ -309,4 +324,32 @@ footer{border-top:1px solid #e6edf5}
 .product-body{padding:12px 10px 0}
 .contact .wrap{border-radius:8px}
 }
+</style>
+
+
+<style id="smilestore-product-detail-refresh">
+/* Product details: full image, clean cards and a soft glass transition */
+.product-desc{display:none!important}
+.product-bottom{margin-top:12px!important}
+.card-open{width:34px;height:34px;display:grid;place-items:center;border:1px solid #d7e4f2;border-radius:50%;background:#f2f7fd;color:#1768d2;cursor:pointer;transition:transform .25s,background .25s,border-color .25s}
+.card-open svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.product:hover .card-open{transform:translate(2px,-2px);background:#e5f1ff;border-color:#a9c9ec}
+.modal{display:flex!important;visibility:hidden;opacity:0;pointer-events:none;transition:opacity .48s ease,backdrop-filter .48s ease,visibility .48s}
+.modal.open{visibility:visible;opacity:1;pointer-events:auto}
+.modal-box{transform:translateY(22px) scale(.975);filter:blur(13px);opacity:0;transition:transform .55s cubic-bezier(.2,.8,.2,1),filter .55s ease,opacity .45s ease}
+.modal.open .modal-box{transform:translateY(0) scale(1);filter:blur(0);opacity:1}
+.modal-box>img{width:100%;height:min(68vh,560px);min-height:360px;object-fit:contain!important;object-position:center;background:#071b30;padding:16px}
+.modal-info{overflow:auto;max-height: min(72vh,620px)}
+.modal-label{margin-top:17px;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#80bfff}
+.modal-info #modalDesc,.modal-info #modalUsage,.modal-info #modalPrice{margin:7px 0 0;white-space:pre-line}
+.modal-info #modalPrice{font-weight:700;color:#eaf4ff}
+@media(max-width:620px){
+ .modal{padding:12px!important}
+ .modal-box{max-height:92dvh!important;grid-template-columns:1fr!important}
+ .modal-box>img{height:38dvh;min-height:210px;max-height:340px;padding:10px}
+ .modal-info{max-height:48dvh;padding:22px!important}
+ .modal-info h3{font-size:22px!important}
+ .card-open{width:30px;height:30px}
+}
+@media(prefers-reduced-motion:reduce){.modal,.modal-box,.card-open{transition:none!important}}
 </style>
